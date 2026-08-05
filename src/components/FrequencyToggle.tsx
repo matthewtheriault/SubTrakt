@@ -1,7 +1,7 @@
 import type { Frequency } from "../types";
 import { FREQUENCY_LABELS } from "../types";
 
-const OPTIONS: Frequency[] = ["biweekly", "monthly", "yearly"];
+const OPTIONS: Frequency[] = ["biweekly", "monthly", "semiannual", "yearly"];
 
 interface FrequencyToggleProps {
   value: Frequency;
@@ -11,7 +11,7 @@ interface FrequencyToggleProps {
 export function FrequencyToggle({ value, onChange }: FrequencyToggleProps) {
   return (
     <div
-      className="inline-flex p-1 rounded-lg gap-1"
+      className="grid grid-cols-2 p-1 rounded-lg gap-1"
       style={{ background: "var(--surface-2)" }}
       role="tablist"
       aria-label="Payment frequency"

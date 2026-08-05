@@ -1,6 +1,6 @@
 [package]
 name = "subtrakt"
-version = "1.1.0"
+version = "1.2.0"
 description = "A manual subscription and recurring-payment tracker."
 authors = ["Matthew Theriault"]
 edition = "2021"

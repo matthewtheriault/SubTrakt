@@ -21,10 +21,20 @@ function addPeriod(d: Date, frequency: Frequency): Date {
     next.setDate(next.getDate() + 14);
   } else if (frequency === "monthly") {
     next.setMonth(next.getMonth() + 1);
+  } else if (frequency === "semiannual") {
+    next.setMonth(next.getMonth() + 6);
   } else {
     next.setFullYear(next.getFullYear() + 1);
   }
   return next;
+}
+
+// Advances an ISO date forward by exactly one billing period. Used when the
+// user confirms a payment was made, to move straight to the next cycle.
+export function advanceOnePeriod(iso: string, frequency: Frequency): string {
+  const date = parseISO(iso);
+  if (!date) return iso;
+  return toISO(addPeriod(date, frequency));
 }
 
 // If `iso` is strictly before today, advances it by whole periods (per `frequency`)

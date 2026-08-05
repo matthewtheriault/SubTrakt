@@ -5,6 +5,7 @@ import { CategoryBreakdown, type CategoryDatum } from "./components/CategoryBrea
 import { SubscriptionRow } from "./components/SubscriptionRow";
 import { SubscriptionForm } from "./components/SubscriptionForm";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { useSubscriptions } from "./useSubscriptions";
 import { useSettings } from "./useSettings";
 import { buildCategoryColorMap } from "./lib/categoryColors";
@@ -25,12 +26,14 @@ function App() {
     updateSubscription,
     deleteSubscription,
     markUsedToday,
+    markPaid,
     replaceAll,
   } = useSubscriptions();
   const { settings, loading: settingsLoading, updateSettings } = useSettings();
 
   const [formMode, setFormMode] = useState<"closed" | "new" | Subscription>("closed");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Subscription | null>(null);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<View>("all");
@@ -171,10 +174,9 @@ function App() {
     setFormMode("closed");
   }
 
-  function handleDelete(sub: Subscription) {
-    if (window.confirm(`Delete "${sub.name}"? This can't be undone.`)) {
-      deleteSubscription(sub.id);
-    }
+  function confirmDelete() {
+    if (pendingDelete) deleteSubscription(pendingDelete.id);
+    setPendingDelete(null);
   }
 
   function selectCategory(category: string | null) {
@@ -403,8 +405,9 @@ function App() {
                   color={categoryColorMap.get(sub.category) ?? "var(--text-muted)"}
                   staleAfterDays={settings.staleAfterDays}
                   onEdit={() => setFormMode(sub)}
-                  onDelete={() => handleDelete(sub)}
+                  onDelete={() => setPendingDelete(sub)}
                   onMarkUsedToday={() => markUsedToday(sub.id)}
+                  onMarkPaid={() => markPaid(sub.id)}
                 />
               ))}
             </div>
@@ -431,6 +434,17 @@ function App() {
             updateSettings(next);
             setSettingsOpen(false);
           }}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete subscription"
+          message={`Delete "${pendingDelete.name}"? This can't be undone.`}
+          confirmLabel="Delete"
+          danger
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={confirmDelete}
         />
       )}
     </div>

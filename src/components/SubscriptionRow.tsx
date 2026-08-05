@@ -1,9 +1,16 @@
 import { useState } from "react";
-import type { Subscription } from "../types";
+import type { Frequency, Subscription } from "../types";
 import { FREQUENCY_LABELS } from "../types";
 import { daysUntil, formatDate } from "../lib/format";
 import { formatMoney } from "../lib/currency";
 import { daysSince } from "../lib/dateMath";
+
+const PERIOD_UNIT_LABELS: Record<Frequency, string> = {
+  biweekly: "period",
+  monthly: "month",
+  semiannual: "6mo",
+  yearly: "year",
+};
 
 interface SubscriptionRowProps {
   sub: Subscription;
@@ -12,6 +19,7 @@ interface SubscriptionRowProps {
   onEdit: () => void;
   onDelete: () => void;
   onMarkUsedToday: () => void;
+  onMarkPaid: () => void;
 }
 
 export function SubscriptionRow({
@@ -21,6 +29,7 @@ export function SubscriptionRow({
   onEdit,
   onDelete,
   onMarkUsedToday,
+  onMarkPaid,
 }: SubscriptionRowProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -47,6 +56,7 @@ export function SubscriptionRow({
   const isCancelCandidate = unusedDays !== null && unusedDays >= staleAfterDays;
 
   const hasHistory = sub.priceHistory.length > 1;
+  const isDueOrOverdue = remaining !== null && remaining <= 0;
 
   return (
     <div
@@ -95,12 +105,23 @@ export function SubscriptionRow({
           </p>
         </div>
 
+        {isDueOrOverdue && (
+          <label
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium cursor-pointer"
+            style={{ color: "var(--status-warning)", background: "var(--surface-2)" }}
+            title="Mark this payment as made and roll to the next cycle"
+          >
+            <input type="checkbox" checked={false} onChange={onMarkPaid} className="cursor-pointer" />
+            Mark paid
+          </label>
+        )}
+
         <div className="shrink-0 text-right">
           <p className="tabular-nums text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             {formatMoney(sub.amount, sub.currency)}
           </p>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            per {sub.frequency === "biweekly" ? "period" : sub.frequency.replace("ly", "")}
+            per {PERIOD_UNIT_LABELS[sub.frequency]}
           </p>
         </div>
 

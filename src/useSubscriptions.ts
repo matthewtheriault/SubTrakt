@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { load, type Store } from "@tauri-apps/plugin-store";
 import type { Subscription } from "./types";
-import { todayISO } from "./lib/dateMath";
+import { advanceOnePeriod, todayISO } from "./lib/dateMath";
+import { normalizeSubscription } from "./lib/normalize";
 
 const STORE_FILE = "subtrakt.json";
 const STORE_KEY = "subscriptions";
@@ -31,9 +32,9 @@ export function useSubscriptions() {
     (async () => {
       const store = await load(STORE_FILE, { autoSave: true });
       storeRef.current = store;
-      const saved = await store.get<Subscription[]>(STORE_KEY);
+      const saved = await store.get<unknown[]>(STORE_KEY);
       if (!cancelled) {
-        setSubscriptions(saved ?? []);
+        setSubscriptions((saved ?? []).map(normalizeSubscription));
         setLoading(false);
       }
     })();
@@ -114,6 +115,19 @@ export function useSubscriptions() {
     [subscriptions, persist],
   );
 
+  const markPaid = useCallback(
+    (id: string) => {
+      persist(
+        subscriptions.map((s) =>
+          s.id === id
+            ? { ...s, paymentDate: advanceOnePeriod(s.paymentDate, s.frequency), lastNotifiedDate: undefined }
+            : s,
+        ),
+      );
+    },
+    [subscriptions, persist],
+  );
+
   return {
     subscriptions,
     loading,
@@ -121,6 +135,7 @@ export function useSubscriptions() {
     updateSubscription,
     deleteSubscription,
     markUsedToday,
+    markPaid,
     replaceAll,
   };
 }

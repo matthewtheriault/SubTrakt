@@ -1,4 +1,4 @@
-export type Frequency = "biweekly" | "monthly" | "yearly";
+export type Frequency = "biweekly" | "monthly" | "semiannual" | "yearly";
 
 export interface PriceHistoryEntry {
   amount: number;
@@ -62,6 +62,7 @@ export const DEFAULT_CATEGORIES = [
 export const FREQUENCY_LABELS: Record<Frequency, string> = {
   biweekly: "Bi-Weekly",
   monthly: "Monthly",
+  semiannual: "Semi-Annual",
   yearly: "Yearly",
 };
 
@@ -69,6 +70,7 @@ export const FREQUENCY_LABELS: Record<Frequency, string> = {
 const OCCURRENCES_PER_YEAR: Record<Frequency, number> = {
   biweekly: 26,
   monthly: 12,
+  semiannual: 2,
   yearly: 1,
 };
 
