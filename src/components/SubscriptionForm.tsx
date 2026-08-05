@@ -1,33 +1,44 @@
 import { useState, type FormEvent } from "react";
 import type { Frequency, Subscription } from "../types";
+import type { SubscriptionInput } from "../useSubscriptions";
 import { FrequencyToggle } from "./FrequencyToggle";
+import { COMMON_CURRENCIES } from "../lib/currency";
 
 export interface SubscriptionFormValues {
   name: string;
   category: string;
   amount: string;
+  currency: string;
   frequency: Frequency;
   paymentDate: string;
   account: string;
   notes: string;
+  isTrial: boolean;
+  trialEndDate: string;
+  lastUsedDate: string;
 }
 
 interface SubscriptionFormProps {
   initial?: Subscription;
   categories: string[];
+  defaultCurrency: string;
   onCancel: () => void;
-  onSubmit: (values: Omit<Subscription, "id" | "createdAt" | "updatedAt">) => void;
+  onSubmit: (values: SubscriptionInput) => void;
 }
 
-function emptyValues(): SubscriptionFormValues {
+function emptyValues(defaultCurrency: string): SubscriptionFormValues {
   return {
     name: "",
     category: "",
     amount: "",
+    currency: defaultCurrency,
     frequency: "monthly",
     paymentDate: "",
     account: "",
     notes: "",
+    isTrial: false,
+    trialEndDate: "",
+    lastUsedDate: "",
   };
 }
 
@@ -36,10 +47,14 @@ function fromSubscription(sub: Subscription): SubscriptionFormValues {
     name: sub.name,
     category: sub.category,
     amount: String(sub.amount),
+    currency: sub.currency,
     frequency: sub.frequency,
     paymentDate: sub.paymentDate,
     account: sub.account,
     notes: sub.notes ?? "",
+    isTrial: sub.isTrial ?? false,
+    trialEndDate: sub.trialEndDate ?? "",
+    lastUsedDate: sub.lastUsedDate ?? "",
   };
 }
 
@@ -49,11 +64,19 @@ const inputStyle = {
   color: "var(--text-primary)",
 };
 
-export function SubscriptionForm({ initial, categories, onCancel, onSubmit }: SubscriptionFormProps) {
+export function SubscriptionForm({
+  initial,
+  categories,
+  defaultCurrency,
+  onCancel,
+  onSubmit,
+}: SubscriptionFormProps) {
   const [values, setValues] = useState<SubscriptionFormValues>(
-    initial ? fromSubscription(initial) : emptyValues(),
+    initial ? fromSubscription(initial) : emptyValues(defaultCurrency),
   );
   const [error, setError] = useState<string | null>(null);
+
+  const currencyOptions = Array.from(new Set([...COMMON_CURRENCIES, values.currency]));
 
   function set<K extends keyof SubscriptionFormValues>(key: K, value: SubscriptionFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
@@ -78,14 +101,22 @@ export function SubscriptionForm({ initial, categories, onCancel, onSubmit }: Su
       setError("Note which account or card this is paid from.");
       return;
     }
+    if (values.isTrial && !values.trialEndDate) {
+      setError("Add the date the trial converts to paid.");
+      return;
+    }
     onSubmit({
       name: values.name.trim(),
       category: values.category.trim(),
       amount,
+      currency: values.currency,
       frequency: values.frequency,
       paymentDate: values.paymentDate,
       account: values.account.trim(),
       notes: values.notes.trim() || undefined,
+      isTrial: values.isTrial,
+      trialEndDate: values.isTrial ? values.trialEndDate : undefined,
+      lastUsedDate: values.lastUsedDate || undefined,
     });
   }
 
@@ -134,8 +165,8 @@ export function SubscriptionForm({ initial, categories, onCancel, onSubmit }: Su
         </label>
 
         <div className="flex gap-3">
-          <label className="flex flex-col gap-1.5 text-sm flex-1">
-            <span style={{ color: "var(--text-secondary)" }}>Amount (USD)</span>
+          <label className="flex flex-col gap-1.5 text-sm flex-[2]">
+            <span style={{ color: "var(--text-secondary)" }}>Amount</span>
             <input
               type="number"
               min="0"
@@ -149,16 +180,32 @@ export function SubscriptionForm({ initial, categories, onCancel, onSubmit }: Su
             />
           </label>
           <label className="flex flex-col gap-1.5 text-sm flex-1">
-            <span style={{ color: "var(--text-secondary)" }}>Payment date</span>
-            <input
-              type="date"
-              className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 tabular-nums"
+            <span style={{ color: "var(--text-secondary)" }}>Currency</span>
+            <select
+              className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 cursor-pointer"
               style={inputStyle}
-              value={values.paymentDate}
-              onChange={(e) => set("paymentDate", e.target.value)}
-            />
+              value={values.currency}
+              onChange={(e) => set("currency", e.target.value)}
+            >
+              {currencyOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span style={{ color: "var(--text-secondary)" }}>Payment date</span>
+          <input
+            type="date"
+            className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 tabular-nums"
+            style={inputStyle}
+            value={values.paymentDate}
+            onChange={(e) => set("paymentDate", e.target.value)}
+          />
+        </label>
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span style={{ color: "var(--text-secondary)" }}>Billing frequency</span>
@@ -175,6 +222,47 @@ export function SubscriptionForm({ initial, categories, onCancel, onSubmit }: Su
             onChange={(e) => set("account", e.target.value)}
           />
         </label>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span style={{ color: "var(--text-secondary)" }}>Last used (optional)</span>
+          <input
+            type="date"
+            className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 tabular-nums"
+            style={inputStyle}
+            value={values.lastUsedDate}
+            onChange={(e) => set("lastUsedDate", e.target.value)}
+          />
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+            Track when you actually used this, to spot subscriptions worth cutting.
+          </span>
+        </label>
+
+        <div
+          className="flex flex-col gap-2 rounded-lg border p-3"
+          style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}
+        >
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={values.isTrial}
+              onChange={(e) => set("isTrial", e.target.checked)}
+              className="cursor-pointer"
+            />
+            <span style={{ color: "var(--text-primary)" }}>This is a free trial</span>
+          </label>
+          {values.isTrial && (
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span style={{ color: "var(--text-secondary)" }}>Trial ends / converts to paid on</span>
+              <input
+                type="date"
+                className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 tabular-nums"
+                style={{ background: "var(--surface-1)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+                value={values.trialEndDate}
+                onChange={(e) => set("trialEndDate", e.target.value)}
+              />
+            </label>
+          )}
+        </div>
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span style={{ color: "var(--text-secondary)" }}>Notes (optional)</span>

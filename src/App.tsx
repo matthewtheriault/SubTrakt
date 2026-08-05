@@ -1,24 +1,51 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Logo } from "./components/Logo";
 import { StatCard } from "./components/StatCard";
 import { CategoryBreakdown, type CategoryDatum } from "./components/CategoryBreakdown";
 import { SubscriptionRow } from "./components/SubscriptionRow";
 import { SubscriptionForm } from "./components/SubscriptionForm";
+import { SettingsPanel } from "./components/SettingsPanel";
 import { useSubscriptions } from "./useSubscriptions";
+import { useSettings } from "./useSettings";
 import { buildCategoryColorMap } from "./lib/categoryColors";
-import { formatCurrency, formatDate } from "./lib/format";
+import { formatDate, daysUntil } from "./lib/format";
+import { formatMoney, toBaseCurrency } from "./lib/currency";
+import { daysSince } from "./lib/dateMath";
+import { reconcileSubscriptions } from "./lib/reminders";
 import { DEFAULT_CATEGORIES, toBiWeekly, toMonthly, toYearly, type Subscription } from "./types";
 
 type SortKey = "date" | "amount" | "name";
+type View = "all" | "cancel-candidates" | "trials-ending";
 
 function App() {
-  const { subscriptions, loading, addSubscription, updateSubscription, deleteSubscription } =
-    useSubscriptions();
+  const {
+    subscriptions,
+    loading,
+    addSubscription,
+    updateSubscription,
+    deleteSubscription,
+    markUsedToday,
+    replaceAll,
+  } = useSubscriptions();
+  const { settings, loading: settingsLoading, updateSettings } = useSettings();
 
   const [formMode, setFormMode] = useState<"closed" | "new" | Subscription>("closed");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<View>("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
+
+  const reconciledRef = useRef(false);
+  useEffect(() => {
+    if (reconciledRef.current || loading || settingsLoading) return;
+    reconciledRef.current = true;
+    reconcileSubscriptions(subscriptions, settings).then((next) => {
+      if (next) replaceAll(next);
+    });
+    // Only ever run once, right after both stores finish their initial load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, settingsLoading]);
 
   const categoryColorMap = useMemo(() => {
     const firstSeen: string[] = [];
@@ -33,11 +60,20 @@ function App() {
   }, [subscriptions]);
 
   const totals = useMemo(() => {
-    const monthly = subscriptions.reduce((sum, s) => sum + toMonthly(s.amount, s.frequency), 0);
-    const yearly = subscriptions.reduce((sum, s) => sum + toYearly(s.amount, s.frequency), 0);
-    const biweekly = subscriptions.reduce((sum, s) => sum + toBiWeekly(s.amount, s.frequency), 0);
+    const monthly = subscriptions.reduce(
+      (sum, s) => sum + toBaseCurrency(toMonthly(s.amount, s.frequency), s.currency, settings),
+      0,
+    );
+    const yearly = subscriptions.reduce(
+      (sum, s) => sum + toBaseCurrency(toYearly(s.amount, s.frequency), s.currency, settings),
+      0,
+    );
+    const biweekly = subscriptions.reduce(
+      (sum, s) => sum + toBaseCurrency(toBiWeekly(s.amount, s.frequency), s.currency, settings),
+      0,
+    );
     return { monthly, yearly, biweekly };
-  }, [subscriptions]);
+  }, [subscriptions, settings]);
 
   const nextPayment = useMemo(() => {
     const upcoming = subscriptions
@@ -49,7 +85,7 @@ function App() {
   const categoryBreakdown: CategoryDatum[] = useMemo(() => {
     const totalsByCategory = new Map<string, number>();
     for (const s of subscriptions) {
-      const monthly = toMonthly(s.amount, s.frequency);
+      const monthly = toBaseCurrency(toMonthly(s.amount, s.frequency), s.currency, settings);
       totalsByCategory.set(s.category, (totalsByCategory.get(s.category) ?? 0) + monthly);
     }
     return Array.from(totalsByCategory.entries())
@@ -59,7 +95,7 @@ function App() {
         color: categoryColorMap.get(category) ?? "var(--text-muted)",
       }))
       .sort((a, b) => b.monthly - a.monthly);
-  }, [subscriptions, categoryColorMap]);
+  }, [subscriptions, categoryColorMap, settings]);
 
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -67,9 +103,37 @@ function App() {
     return counts;
   }, [subscriptions]);
 
+  const cancelCandidates = useMemo(
+    () =>
+      subscriptions.filter((s) => {
+        if (!s.lastUsedDate) return false;
+        const unused = daysSince(s.lastUsedDate);
+        return unused !== null && unused >= settings.staleAfterDays;
+      }),
+    [subscriptions, settings.staleAfterDays],
+  );
+
+  const trialsEndingSoon = useMemo(
+    () =>
+      subscriptions.filter((s) => {
+        if (!s.isTrial || !s.trialEndDate) return false;
+        const days = daysUntil(s.trialEndDate);
+        return days !== null && days >= 0 && days <= settings.reminderDaysBefore;
+      }),
+    [subscriptions, settings.reminderDaysBefore],
+  );
+
+  const currenciesInUse = useMemo(
+    () => Array.from(new Set(subscriptions.map((s) => s.currency))),
+    [subscriptions],
+  );
+
   const visibleSubscriptions = useMemo(() => {
     let list = subscriptions;
-    if (activeCategory) list = list.filter((s) => s.category === activeCategory);
+    if (activeView === "cancel-candidates") list = cancelCandidates;
+    else if (activeView === "trials-ending") list = trialsEndingSoon;
+    else if (activeCategory) list = list.filter((s) => s.category === activeCategory);
+
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
@@ -81,12 +145,16 @@ function App() {
     }
     const sorted = [...list];
     sorted.sort((a, b) => {
-      if (sortKey === "amount") return toMonthly(b.amount, b.frequency) - toMonthly(a.amount, a.frequency);
+      if (sortKey === "amount") {
+        const am = toBaseCurrency(toMonthly(a.amount, a.frequency), a.currency, settings);
+        const bm = toBaseCurrency(toMonthly(b.amount, b.frequency), b.currency, settings);
+        return bm - am;
+      }
       if (sortKey === "name") return a.name.localeCompare(b.name);
       return (a.paymentDate || "9999").localeCompare(b.paymentDate || "9999");
     });
     return sorted;
-  }, [subscriptions, activeCategory, search, sortKey]);
+  }, [subscriptions, activeCategory, activeView, cancelCandidates, trialsEndingSoon, search, sortKey, settings]);
 
   const knownCategories = useMemo(() => {
     const set = new Set<string>(DEFAULT_CATEGORIES);
@@ -94,7 +162,7 @@ function App() {
     return Array.from(set);
   }, [subscriptions]);
 
-  function handleFormSubmit(values: Omit<Subscription, "id" | "createdAt" | "updatedAt">) {
+  function handleFormSubmit(values: Parameters<typeof addSubscription>[0]) {
     if (formMode !== "closed" && formMode !== "new") {
       updateSubscription(formMode.id, values);
     } else {
@@ -109,17 +177,48 @@ function App() {
     }
   }
 
+  function selectCategory(category: string | null) {
+    setActiveCategory(category);
+    setActiveView("all");
+  }
+
+  function selectView(view: View) {
+    setActiveView(view);
+    setActiveCategory(null);
+  }
+
+  const listTitle =
+    activeView === "cancel-candidates"
+      ? "Cancel candidates"
+      : activeView === "trials-ending"
+        ? "Trials ending soon"
+        : (activeCategory ?? "All subscriptions");
+
   return (
     <div className="flex h-screen w-screen" style={{ background: "var(--page)" }}>
       {/* Sidebar */}
       <aside
-        className="flex w-64 shrink-0 flex-col gap-6 border-r p-5"
+        className="flex w-64 shrink-0 flex-col gap-6 border-r p-5 overflow-y-auto"
         style={{ borderColor: "var(--border)", background: "var(--surface-1)" }}
         data-tauri-drag-region
       >
-        <div className="flex items-center gap-2.5 pt-1">
-          <Logo size={30} />
-          <span className="text-base font-semibold tracking-tight">SubTrakt</span>
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2.5">
+            <Logo size={30} />
+            <span className="text-base font-semibold tracking-tight">SubTrakt</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Settings"
+            className="rounded-lg p-1.5 cursor-pointer"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
         </div>
 
         <button
@@ -132,16 +231,13 @@ function App() {
         </button>
 
         <div className="flex flex-col gap-1">
-          <p className="px-1 pb-1 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
-            Categories
-          </p>
           <button
             type="button"
-            onClick={() => setActiveCategory(null)}
+            onClick={() => selectView("all")}
             className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
             style={{
-              background: activeCategory === null ? "var(--surface-2)" : "transparent",
-              color: activeCategory === null ? "var(--text-primary)" : "var(--text-secondary)",
+              background: activeView === "all" && !activeCategory ? "var(--surface-2)" : "transparent",
+              color: activeView === "all" && !activeCategory ? "var(--text-primary)" : "var(--text-secondary)",
             }}
           >
             <span>All</span>
@@ -149,11 +245,55 @@ function App() {
               {subscriptions.length}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => selectView("trials-ending")}
+            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
+            style={{
+              background: activeView === "trials-ending" ? "var(--surface-2)" : "transparent",
+              color: activeView === "trials-ending" ? "var(--text-primary)" : "var(--text-secondary)",
+            }}
+          >
+            <span>Trials ending soon</span>
+            {trialsEndingSoon.length > 0 && (
+              <span
+                className="tabular-nums text-xs rounded-full px-1.5"
+                style={{ background: "var(--status-warning)", color: "#241a00" }}
+              >
+                {trialsEndingSoon.length}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => selectView("cancel-candidates")}
+            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
+            style={{
+              background: activeView === "cancel-candidates" ? "var(--surface-2)" : "transparent",
+              color: activeView === "cancel-candidates" ? "var(--text-primary)" : "var(--text-secondary)",
+            }}
+          >
+            <span>Cancel candidates</span>
+            {cancelCandidates.length > 0 && (
+              <span
+                className="tabular-nums text-xs rounded-full px-1.5"
+                style={{ background: "var(--status-serious)", color: "#2a1200" }}
+              >
+                {cancelCandidates.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <p className="px-1 pb-1 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+            Categories
+          </p>
           {Array.from(categoryColorMap.keys()).map((category) => (
             <button
               key={category}
               type="button"
-              onClick={() => setActiveCategory(category)}
+              onClick={() => selectCategory(category)}
               className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
               style={{
                 background: activeCategory === category ? "var(--surface-2)" : "transparent",
@@ -179,7 +319,7 @@ function App() {
             Monthly spend
           </p>
           <p className="text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>
-            {formatCurrency(totals.monthly)}
+            {formatMoney(totals.monthly, settings.baseCurrency)}
           </p>
         </div>
       </aside>
@@ -207,12 +347,12 @@ function App() {
         </header>
 
         <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard label="Monthly" value={formatCurrency(totals.monthly)} accent />
-          <StatCard label="Yearly" value={formatCurrency(totals.yearly)} />
-          <StatCard label="Bi-Weekly" value={formatCurrency(totals.biweekly)} />
+          <StatCard label="Monthly" value={formatMoney(totals.monthly, settings.baseCurrency)} accent />
+          <StatCard label="Yearly" value={formatMoney(totals.yearly, settings.baseCurrency)} />
+          <StatCard label="Bi-Weekly" value={formatMoney(totals.biweekly, settings.baseCurrency)} />
           <StatCard
             label="Next Payment"
-            value={nextPayment ? formatCurrency(nextPayment.amount) : "—"}
+            value={nextPayment ? formatMoney(nextPayment.amount, nextPayment.currency) : "—"}
             hint={nextPayment ? `${nextPayment.name} · ${formatDate(nextPayment.paymentDate)}` : "Nothing scheduled"}
           />
         </section>
@@ -226,7 +366,7 @@ function App() {
 
         <section className="flex flex-1 flex-col gap-2 pb-4">
           <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-            {activeCategory ?? "All subscriptions"}
+            {listTitle}
             <span className="ml-2 font-normal" style={{ color: "var(--text-muted)" }}>
               {visibleSubscriptions.length}
             </span>
@@ -242,12 +382,16 @@ function App() {
               style={{ borderColor: "var(--border)" }}
             >
               <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
-                {subscriptions.length === 0 ? "No subscriptions yet" : "Nothing matches"}
+                {subscriptions.length === 0 ? "No subscriptions yet" : "Nothing here"}
               </p>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                 {subscriptions.length === 0
                   ? "Add your first subscription to start tracking your spend."
-                  : "Try a different search or category."}
+                  : activeView === "cancel-candidates"
+                    ? "Nothing unused past your threshold. Set \"Last used\" dates to track this."
+                    : activeView === "trials-ending"
+                      ? "No trials converting soon."
+                      : "Try a different search or category."}
               </p>
             </div>
           ) : (
@@ -257,8 +401,10 @@ function App() {
                   key={sub.id}
                   sub={sub}
                   color={categoryColorMap.get(sub.category) ?? "var(--text-muted)"}
+                  staleAfterDays={settings.staleAfterDays}
                   onEdit={() => setFormMode(sub)}
                   onDelete={() => handleDelete(sub)}
+                  onMarkUsedToday={() => markUsedToday(sub.id)}
                 />
               ))}
             </div>
@@ -270,8 +416,21 @@ function App() {
         <SubscriptionForm
           initial={formMode === "new" ? undefined : formMode}
           categories={knownCategories}
+          defaultCurrency={settings.baseCurrency}
           onCancel={() => setFormMode("closed")}
           onSubmit={handleFormSubmit}
+        />
+      )}
+
+      {settingsOpen && (
+        <SettingsPanel
+          settings={settings}
+          currenciesInUse={currenciesInUse}
+          onCancel={() => setSettingsOpen(false)}
+          onSave={(next) => {
+            updateSettings(next);
+            setSettingsOpen(false);
+          }}
         />
       )}
     </div>
