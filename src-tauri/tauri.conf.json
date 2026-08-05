@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SubTrakt",
+  "version": "1.0.0",
+  "identifier": "com.matthewtheriault.subtrakt",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "SubTrakt",
+        "width": 1180,
+        "height": 760,
+        "minWidth": 860,
+        "minHeight": 560,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg", "nsis", "msi"],
+    "publisher": "Matthew Theriault",
+    "copyright": "Copyright © 2026 Matthew Theriault",
+    "category": "Finance",
+    "shortDescription": "Track subscriptions and recurring payments.",
+    "longDescription": "SubTrakt is a manual subscription and recurring-payment tracker. Log what you pay for, how often, and which account it comes from, then see your monthly and yearly totals broken down by category.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}
