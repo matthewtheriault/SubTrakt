@@ -25,3 +25,9 @@ dist-ssr
 
 # Claude Code local runtime state
 .claude/
+
+# iOS build output
+ios/SubTrakt/build/
+ios/screenshot*.png
+ios/SubTrakt/SubTrakt.xcodeproj/project.xcworkspace/xcuserdata/
+ios/SubTrakt/SubTrakt.xcodeproj/xcuserdata/
