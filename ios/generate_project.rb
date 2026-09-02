@@ -12,6 +12,7 @@ PROJECT_PATH = File.join(ROOT, 'SubTrakt.xcodeproj')
 SOURCE_ROOT = File.join(ROOT, 'SubTrakt')
 BUNDLE_ID = 'com.mattheriault.SubTrakt'
 DEPLOYMENT_TARGET = '17.0'
+DEVELOPMENT_TEAM = '3PJ4Q58Z3W' # set via Xcode's Signing & Capabilities tab; kept here so regenerating the project doesn't drop it
 
 File.delete(PROJECT_PATH) if File.exist?(PROJECT_PATH) && !File.directory?(PROJECT_PATH)
 
@@ -54,6 +55,7 @@ target.build_configurations.each do |config|
   bs['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
   bs['ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME'] = 'AccentColor'
   bs['CODE_SIGN_STYLE'] = 'Automatic'
+  bs['DEVELOPMENT_TEAM'] = DEVELOPMENT_TEAM
   bs['SWIFT_EMIT_LOC_STRINGS'] = 'NO'
   bs['ENABLE_PREVIEWS'] = 'YES'
 end
