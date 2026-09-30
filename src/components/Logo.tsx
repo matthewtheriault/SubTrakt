@@ -11,7 +11,7 @@ export function Logo({ size = 32 }: LogoProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="SubTrakt logo"
+      aria-label="DueDate logo"
     >
       <defs>
         <linearGradient id="subtrakt-logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">

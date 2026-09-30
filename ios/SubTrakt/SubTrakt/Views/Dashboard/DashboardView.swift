@@ -98,7 +98,7 @@ struct DashboardView: View {
                 .padding(16)
             }
             .background(GlowBackground(edge: .top))
-            .navigationTitle("SubTrakt")
+            .navigationTitle("DueDate")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

@@ -1,4 +1,4 @@
-# SubTrakt
+# DueDate – Subscription Tracker
 
 A sleek, native desktop app for tracking every subscription and recurring
 payment you have — Xbox Game Pass, VPNs, student loans, streaming, credit
@@ -67,7 +67,7 @@ accent glow — **without** copying Orbit's actual assets/copy/mascot, and
 show a real app/company logo next to each tracked subscription. Decisions
 made with the user:
 
-- Keep SubTrakt's existing **black/orange** brand — no purple shift.
+- Keep DueDate's existing **black/orange** brand — no purple shift.
 - Logos: bundled local icon set + curated brand-color fallback + hashed
   initials fallback + custom image upload. **No network calls** — the app
   stays fully offline (this ruled out a Clearbit/favicon-API approach).

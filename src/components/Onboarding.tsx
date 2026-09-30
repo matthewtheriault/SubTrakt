@@ -179,7 +179,7 @@ const STEPS: Step[] = [
   {
     primary: "Yours alone.",
     secondary: "Kept on this device.",
-    message: "No account, no ads, no tracking. SubTrakt never sends your data anywhere.",
+    message: "No account, no ads, no tracking. DueDate never sends your data anywhere.",
     art: <SymbolBadge icon={ICONS.lock} />,
   },
   {

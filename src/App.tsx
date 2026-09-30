@@ -226,7 +226,7 @@ function App() {
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2.5">
             <Logo size={30} />
-            <span className="text-base font-semibold tracking-tight">SubTrakt</span>
+            <span className="text-base font-semibold tracking-tight">DueDate</span>
           </div>
           <button
             type="button"

@@ -83,7 +83,7 @@ struct SettingsView: View {
                     Text("Remind me before a charge / trial ends")
                 } footer: {
                     if notificationsDenied {
-                        Button("Notifications are off for SubTrakt. Turn them on in Settings.") {
+                        Button("Notifications are off for DueDate. Turn them on in Settings.") {
                             if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
                                 openURL(url)
                             }
@@ -110,7 +110,7 @@ struct SettingsView: View {
                 } header: {
                     Text("About")
                 } footer: {
-                    Text("Your subscriptions are stored only on this device. SubTrakt has no account and sends nothing off your phone.")
+                    Text("Your subscriptions are stored only on this device. DueDate has no account and sends nothing off your phone.")
                 }
             }
             .scrollContentBackground(.hidden)

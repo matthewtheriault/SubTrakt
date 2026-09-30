@@ -14,7 +14,7 @@ BUNDLE_ID = 'com.mattheriault.SubTrakt'
 DEPLOYMENT_TARGET = '17.0'
 DEVELOPMENT_TEAM = '3PJ4Q58Z3W' # set via Xcode's Signing & Capabilities tab; kept here so regenerating the project doesn't drop it
 MARKETING_VERSION = '1.0' # user-visible version shown on the App Store / TestFlight
-CURRENT_PROJECT_VERSION = '3' # build number; must increase on every TestFlight/App Store upload
+CURRENT_PROJECT_VERSION = '4' # build number; must increase on every TestFlight/App Store upload
 
 File.delete(PROJECT_PATH) if File.exist?(PROJECT_PATH) && !File.directory?(PROJECT_PATH)
 
@@ -55,7 +55,7 @@ target.build_configurations.each do |config|
   bs['IPHONEOS_DEPLOYMENT_TARGET'] = DEPLOYMENT_TARGET
   bs['TARGETED_DEVICE_FAMILY'] = '1,2'
   bs['GENERATE_INFOPLIST_FILE'] = 'YES'
-  bs['INFOPLIST_KEY_CFBundleDisplayName'] = 'SubTrakt'
+  bs['INFOPLIST_KEY_CFBundleDisplayName'] = 'DueDate'
   bs['INFOPLIST_KEY_UILaunchScreen_Generation'] = 'YES'
   bs['INFOPLIST_KEY_UIApplicationSceneManifest_Generation'] = 'YES'
   bs['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'

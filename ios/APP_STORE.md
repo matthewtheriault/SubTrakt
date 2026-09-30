@@ -7,8 +7,8 @@ can't live in code. Character limits are Apple's.
 
 | Field | Value |
 |---|---|
-| Name (30) | SubTrakt |
-| Subtitle (30) | Track subscriptions & renewals |
+| Name (30) | DueDate – Subscription Tracker |
+| Subtitle (30) | Never miss a renewal |
 | Bundle ID | com.mattheriault.SubTrakt |
 | Primary category | Finance |
 | Secondary category | Productivity |
@@ -25,18 +25,18 @@ See every subscription in one place, get a reminder before each charge, and spot
 
 **Description (4000)**
 
-SubTrakt helps you keep track of every subscription you pay for, so you're never surprised by a charge.
+DueDate helps you keep track of every subscription you pay for, so you're never surprised by a charge.
 
 • All your subscriptions in one list: streaming, software, gaming, cloud storage, loans, and anything else that renews.
 • Reminders before each charge and before a free trial converts, a set number of days ahead.
 • Monthly and yearly totals, broken down by category.
-• Cancel candidates: SubTrakt flags subscriptions you haven't used in a while.
+• Cancel candidates: DueDate flags subscriptions you haven't used in a while.
 • Price history, so you can see when a service raised its price.
 • Multiple currencies with your own exchange rates, all converted to one base currency.
 • Bi-weekly, monthly, semi-annual, and yearly billing.
 • One tap to mark a charge as paid and move it to the next billing date.
 
-Private by design: SubTrakt has no account, no ads, and no tracking. Everything you enter is stored only on your device.
+Private by design: DueDate has no account, no ads, and no tracking. Everything you enter is stored only on your device.
 
 **Keywords (100, comma-separated, no spaces needed)**
 subscription,tracker,bills,renewal,budget,reminder,trial,recurring,expenses,manager,spending,cancel
@@ -67,7 +67,7 @@ upload won't prompt.
 
 ## Review notes (App Review Information)
 
-> SubTrakt is fully offline with no login. To test, tap + to add a
+> DueDate is fully offline with no login. To test, tap + to add a
 > subscription with a payment date a few days out. Reminders are local
 > notifications. The permission prompt appears after the first subscription
 > is added.
