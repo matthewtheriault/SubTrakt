@@ -34,6 +34,7 @@ struct LogoBadgeView: View {
             }
         }
         .frame(width: size, height: size)
+        .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(Color("BorderColor")))
     }
 
     private func initialsTile(background: Color, initials: String) -> some View {

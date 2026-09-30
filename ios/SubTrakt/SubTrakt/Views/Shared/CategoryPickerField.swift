@@ -7,7 +7,6 @@ struct CategoryPickerField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             TextField("e.g. Gaming", text: $category)
-                .textFieldStyle(.roundedBorder)
 
             if !knownCategories.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

@@ -60,7 +60,7 @@ struct SubscriptionFormView: View {
                                     }
                                 }
                             } label: {
-                                Text("Pick a brand icon…")
+                                Text("Pick a brand…")
                                     .font(.caption.weight(.medium))
                             }
 
@@ -159,6 +159,7 @@ struct SubscriptionFormView: View {
             }
             .onAppear(perform: populateIfEditing)
         }
+        .pageSheetSizing()
     }
 
     private func populateIfEditing() {

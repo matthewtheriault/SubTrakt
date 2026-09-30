@@ -19,7 +19,23 @@ private struct AccentGlow: ViewModifier {
     }
 }
 
+// On iPad, sheets default to a small centered form sheet; `.page` sizes them
+// like a full-height page instead. No effect on iPhone.
+private struct PageSheetSizing: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.presentationSizing(.page)
+        } else {
+            content
+        }
+    }
+}
+
 extension View {
+    func pageSheetSizing() -> some View {
+        modifier(PageSheetSizing())
+    }
+
     func cardBackground() -> some View {
         modifier(CardBackground())
     }

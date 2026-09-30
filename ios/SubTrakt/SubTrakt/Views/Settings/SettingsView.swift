@@ -117,6 +117,7 @@ struct SettingsView: View {
                 notificationsDenied = status == .denied
             }
         }
+        .pageSheetSizing()
     }
 
     private var appVersion: String {
