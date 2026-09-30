@@ -83,9 +83,9 @@ tile, "Disney Plus" → blue "DP" initials tile):
 - `Subscription` gained `logoOverrideId?` and `customLogoDataUrl?`
   (`src/types.ts`, backfilled in `src/lib/normalize.ts`, threaded through
   `SubscriptionInput` in `src/useSubscriptions.ts`).
-- `src/lib/brandIcons.ts` (new) — `resolveLogo()` with 4 tiers: custom image
-  → manual override → name auto-match (`simple-icons` package, added as a
-  dependency) → curated brand-color table → hashed initials.
+- `src/lib/brandIcons.ts` (new) — `resolveLogo()`: custom image → manual
+  override → name auto-match against a curated brand-color table (initials
+  tile, no logo artwork) → hashed initials. Brand ids match iOS.
 - `src/components/LogoBadge.tsx` (new) — renders whichever tier.
 - `SubscriptionForm.tsx` — new "Logo" field: live preview, "Choose image…"
   (resizes to 256×256 PNG via canvas before storing), brand-icon datalist
@@ -117,8 +117,8 @@ but **not yet compiled** (see blocker below):
   default system list chrome.
 - (Removed) An earlier `scripts/generate-brand-icons.mjs` rasterized
   `simple-icons` glyphs into the iOS asset catalog. It was dropped along
-  with those assets before App Store submission. The web/Tauri app still
-  uses `simple-icons` directly.
+  with those assets before App Store submission; the web/Tauri app later
+  dropped `simple-icons` too, so neither app bundles third-party logos.
 
 ### Blocker: Xcode license not accepted on this Mac
 

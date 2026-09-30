@@ -241,7 +241,7 @@ export function SubscriptionForm({
               />
               <input
                 list="subtrakt-brand-options"
-                placeholder="Or pick a brand icon…"
+                placeholder="Or pick a brand…"
                 className="rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2"
                 style={inputStyle}
                 disabled={!!values.customLogoDataUrl}

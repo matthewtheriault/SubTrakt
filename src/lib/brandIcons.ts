@@ -1,186 +1,106 @@
 // Per-subscription logo resolution.
 //
-// Tier 1 ("icon"): real brand glyphs from `simple-icons` (CC0-1.0 — public
-// domain, explicitly published for representing third-party brands/products).
-// Tier 2 ("color"): a small curated table of brand name -> official brand
-// color for well-known subscriptions simple-icons doesn't ship (colors
-// aren't copyrightable; no artwork is reproduced).
-// Tier 3 ("hash"): a deterministic color from the app's existing categorical
+// No third-party logo artwork is bundled (trademark risk; see App Review
+// guideline 5.2.1 — the iOS app follows the same rule). Known brands get a
+// tile in their brand color with the subscription's initials.
+//
+// Tier 1 ("color"): curated brand name -> brand color table. Colors are
+// commonly-cited brand colors, approximate for the handful without a single
+// canonical hex (Peacock, MasterClass, Babbel).
+// Tier 2 ("hash"): a deterministic color from the app's existing categorical
 // palette, same technique as `categoryColors.ts`, for anything unrecognized.
 // Tier 0 ("custom"): a user-uploaded image always wins.
-import {
-  siNetflix,
-  siSpotify,
-  siYoutube,
-  siYoutubemusic,
-  siYoutubetv,
-  siHbomax,
-  siTwitch,
-  siCrunchyroll,
-  siGithub,
-  siGithubcopilot,
-  siNotion,
-  siFigma,
-  siDropbox,
-  si1password,
-  siIcloud,
-  siPlaystation,
-  siSteam,
-  siEpicgames,
-  siPeloton,
-  siHeadspace,
-  siNordvpn,
-  siExpressvpn,
-  siProtonvpn,
-  siProtonmail,
-  siZoom,
-  siGrammarly,
-  siEvernote,
-  siTodoist,
-  siStrava,
-  siSkillshare,
-  siCoursera,
-  siAudible,
-  siPatreon,
-  siNewyorktimes,
-  siSoundcloud,
-  siCloudflare,
-  siVercel,
-  siDuolingo,
-  siTidal,
-  siDiscord,
-  siLinear,
-  siWordpress,
-  siSquarespace,
-  siWix,
-  siShopify,
-  siMailchimp,
-  siNamecheap,
-  siGodaddy,
-  siDigitalocean,
-  siNetlify,
-  siAnthropic,
-  siClaude,
-  siPerplexity,
-  siApplearcade,
-  siApplemusic,
-  siAppletv,
-  siGoogledrive,
-  siGoogleplay,
-  siFitbit,
-  type SimpleIcon,
-} from "simple-icons";
 
-interface BrandIcon {
-  matchKind: "icon";
+interface Brand {
   id: string;
   label: string;
   hex: string;
-  path: string;
   keywords: string[];
 }
 
-function icon(si: SimpleIcon, ...keywords: string[]): BrandIcon {
-  return { matchKind: "icon", id: si.slug, label: si.title, hex: `#${si.hex}`, path: si.path, keywords };
+function brand(id: string, label: string, hex: string, keywords: string[]): Brand {
+  return { id, label, hex, keywords };
 }
 
 // Ordered most-specific-first: earlier entries are tested first so e.g.
-// "YouTube Music" matches before the generic "YouTube" entry.
-const BRAND_ICONS: BrandIcon[] = [
-  icon(siYoutubemusic, "youtube music"),
-  icon(siYoutubetv, "youtube tv"),
-  icon(siYoutube, "youtube"),
-  icon(siGithubcopilot, "github copilot", "copilot"),
-  icon(siGithub, "github"),
-  icon(siNetflix, "netflix"),
-  icon(siSpotify, "spotify"),
-  icon(siHbomax, "hbo max", "hbo"),
-  icon(siTwitch, "twitch"),
-  icon(siCrunchyroll, "crunchyroll"),
-  icon(siNotion, "notion"),
-  icon(siFigma, "figma"),
-  icon(siDropbox, "dropbox"),
-  icon(si1password, "1password", "1 password"),
-  icon(siIcloud, "icloud", "i cloud"),
-  icon(siPlaystation, "playstation", "ps plus", "ps+"),
-  icon(siSteam, "steam"),
-  icon(siEpicgames, "epic games", "epic"),
-  icon(siPeloton, "peloton"),
-  icon(siHeadspace, "headspace"),
-  icon(siNordvpn, "nordvpn", "nord vpn"),
-  icon(siExpressvpn, "expressvpn", "express vpn"),
-  icon(siProtonvpn, "proton vpn", "protonvpn"),
-  icon(siProtonmail, "proton mail", "protonmail"),
-  icon(siZoom, "zoom"),
-  icon(siGrammarly, "grammarly"),
-  icon(siEvernote, "evernote"),
-  icon(siTodoist, "todoist"),
-  icon(siStrava, "strava"),
-  icon(siSkillshare, "skillshare"),
-  icon(siCoursera, "coursera"),
-  icon(siAudible, "audible"),
-  icon(siPatreon, "patreon"),
-  icon(siNewyorktimes, "new york times", "nytimes", "nyt"),
-  icon(siSoundcloud, "soundcloud"),
-  icon(siCloudflare, "cloudflare"),
-  icon(siVercel, "vercel"),
-  icon(siDuolingo, "duolingo"),
-  icon(siTidal, "tidal"),
-  icon(siDiscord, "discord"),
-  icon(siLinear, "linear"),
-  icon(siWordpress, "wordpress"),
-  icon(siSquarespace, "squarespace"),
-  icon(siWix, "wix"),
-  icon(siShopify, "shopify"),
-  icon(siMailchimp, "mailchimp", "mail chimp"),
-  icon(siNamecheap, "namecheap"),
-  icon(siGodaddy, "godaddy", "go daddy"),
-  icon(siDigitalocean, "digital ocean", "digitalocean"),
-  icon(siNetlify, "netlify"),
-  icon(siAnthropic, "anthropic"),
-  icon(siClaude, "claude"),
-  icon(siPerplexity, "perplexity"),
-  icon(siApplearcade, "apple arcade"),
-  icon(siApplemusic, "apple music"),
-  icon(siAppletv, "apple tv"),
-  icon(siGoogledrive, "google drive", "google one"),
-  icon(siGoogleplay, "google play"),
-  icon(siFitbit, "fitbit"),
-];
-
-interface BrandColorFallback {
-  matchKind: "color";
-  id: string;
-  label: string;
-  hex: string;
-  keywords: string[];
-}
-
-function colorFallback(id: string, label: string, hex: string, keywords: string[]): BrandColorFallback {
-  return { matchKind: "color", id, label, hex, keywords };
-}
-
-// Well-known subscriptions with no simple-icons entry (several were removed
-// from that project after trademark-holder requests). Colors below are
-// commonly-cited brand colors, not traced artwork — approximate for the
-// handful without a single canonical hex (Peacock, MasterClass, Babbel).
-const BRAND_COLOR_FALLBACKS: BrandColorFallback[] = [
-  colorFallback("disney-plus", "Disney+", "#113CCF", ["disney"]),
-  colorFallback("hulu", "Hulu", "#1CE783", ["hulu"]),
-  colorFallback("peacock", "Peacock", "#000000", ["peacock"]),
-  colorFallback("prime-video", "Prime Video", "#00A8E1", ["prime video", "amazon prime", "prime"]),
-  colorFallback("xbox-game-pass", "Xbox Game Pass", "#107C10", ["xbox", "game pass"]),
-  colorFallback("adobe-cc", "Adobe Creative Cloud", "#DA1F26", ["adobe"]),
-  colorFallback("microsoft-365", "Microsoft 365", "#0078D4", ["microsoft 365", "office 365", "microsoft office"]),
-  colorFallback("linkedin", "LinkedIn", "#0A66C2", ["linkedin"]),
-  colorFallback("chatgpt", "ChatGPT", "#10A37F", ["chatgpt", "openai"]),
-  colorFallback("aws", "AWS", "#FF9900", ["aws", "amazon web services"]),
-  colorFallback("calm", "Calm", "#3E7CB1", ["calm"]),
-  colorFallback("masterclass", "MasterClass", "#C6A15B", ["masterclass"]),
-  colorFallback("babbel", "Babbel", "#0AA090", ["babbel"]),
-  colorFallback("slack", "Slack", "#4A154B", ["slack"]),
-  colorFallback("canva", "Canva", "#00C4CC", ["canva"]),
-  colorFallback("heroku", "Heroku", "#430098", ["heroku"]),
+// "YouTube Music" matches before the generic "YouTube" entry. `id`s are
+// persisted as `logoOverrideId` and must match the iOS app's BrandIcons.swift.
+const BRANDS: Brand[] = [
+  brand("youtubemusic", "YouTube Music", "#FF0000", ["youtube music"]),
+  brand("youtubetv", "YouTube TV", "#FF0000", ["youtube tv"]),
+  brand("youtube", "YouTube", "#FF0000", ["youtube"]),
+  brand("githubcopilot", "GitHub Copilot", "#000000", ["github copilot", "copilot"]),
+  brand("github", "GitHub", "#181717", ["github"]),
+  brand("netflix", "Netflix", "#E50914", ["netflix"]),
+  brand("spotify", "Spotify", "#1ED760", ["spotify"]),
+  brand("hbomax", "HBO Max", "#000000", ["hbo max", "hbo"]),
+  brand("twitch", "Twitch", "#9146FF", ["twitch"]),
+  brand("crunchyroll", "Crunchyroll", "#FF5E00", ["crunchyroll"]),
+  brand("notion", "Notion", "#000000", ["notion"]),
+  brand("figma", "Figma", "#F24E1E", ["figma"]),
+  brand("dropbox", "Dropbox", "#0061FF", ["dropbox"]),
+  brand("1password", "1Password", "#145FE4", ["1password", "1 password"]),
+  brand("icloud", "iCloud", "#3693F3", ["icloud", "i cloud"]),
+  brand("playstation", "PlayStation", "#0070D1", ["playstation", "ps plus", "ps+"]),
+  brand("steam", "Steam", "#000000", ["steam"]),
+  brand("epicgames", "Epic Games", "#313131", ["epic games", "epic"]),
+  brand("peloton", "Peloton", "#181A1D", ["peloton"]),
+  brand("headspace", "Headspace", "#F47D31", ["headspace"]),
+  brand("nordvpn", "NordVPN", "#4687FF", ["nordvpn", "nord vpn"]),
+  brand("expressvpn", "ExpressVPN", "#DA3940", ["expressvpn", "express vpn"]),
+  brand("protonvpn", "Proton VPN", "#66DEB1", ["proton vpn", "protonvpn"]),
+  brand("protonmail", "Proton Mail", "#6D4AFF", ["proton mail", "protonmail"]),
+  brand("zoom", "Zoom", "#0B5CFF", ["zoom"]),
+  brand("grammarly", "Grammarly", "#027E6F", ["grammarly"]),
+  brand("evernote", "Evernote", "#00A82D", ["evernote"]),
+  brand("todoist", "Todoist", "#E44332", ["todoist"]),
+  brand("strava", "Strava", "#FC4C02", ["strava"]),
+  brand("skillshare", "Skillshare", "#00FF84", ["skillshare"]),
+  brand("coursera", "Coursera", "#0056D2", ["coursera"]),
+  brand("audible", "Audible", "#F8991C", ["audible"]),
+  brand("patreon", "Patreon", "#000000", ["patreon"]),
+  brand("newyorktimes", "New York Times", "#000000", ["new york times", "nytimes", "nyt"]),
+  brand("soundcloud", "SoundCloud", "#FF5500", ["soundcloud"]),
+  brand("cloudflare", "Cloudflare", "#F38020", ["cloudflare"]),
+  brand("vercel", "Vercel", "#000000", ["vercel"]),
+  brand("duolingo", "Duolingo", "#58CC02", ["duolingo"]),
+  brand("tidal", "TIDAL", "#000000", ["tidal"]),
+  brand("discord", "Discord", "#5865F2", ["discord"]),
+  brand("linear", "Linear", "#5E6AD2", ["linear"]),
+  brand("wordpress", "WordPress", "#21759B", ["wordpress"]),
+  brand("squarespace", "Squarespace", "#000000", ["squarespace"]),
+  brand("wix", "Wix", "#0C6EFC", ["wix"]),
+  brand("shopify", "Shopify", "#7AB55C", ["shopify"]),
+  brand("mailchimp", "MailChimp", "#FFE01B", ["mailchimp", "mail chimp"]),
+  brand("namecheap", "Namecheap", "#DE3723", ["namecheap"]),
+  brand("godaddy", "GoDaddy", "#1BDBDB", ["godaddy", "go daddy"]),
+  brand("digitalocean", "DigitalOcean", "#0080FF", ["digital ocean", "digitalocean"]),
+  brand("netlify", "Netlify", "#00C7B7", ["netlify"]),
+  brand("anthropic", "Anthropic", "#191919", ["anthropic"]),
+  brand("claude", "Claude", "#D97757", ["claude"]),
+  brand("perplexity", "Perplexity", "#1FB8CD", ["perplexity"]),
+  brand("applearcade", "Apple Arcade", "#000000", ["apple arcade"]),
+  brand("applemusic", "Apple Music", "#FA243C", ["apple music"]),
+  brand("appletv", "Apple TV", "#000000", ["apple tv"]),
+  brand("googledrive", "Google Drive", "#4285F4", ["google drive", "google one"]),
+  brand("googleplay", "Google Play", "#414141", ["google play"]),
+  brand("fitbit", "Fitbit", "#00B0B9", ["fitbit"]),
+  brand("disney-plus", "Disney+", "#113CCF", ["disney"]),
+  brand("hulu", "Hulu", "#1CE783", ["hulu"]),
+  brand("peacock", "Peacock", "#000000", ["peacock"]),
+  brand("prime-video", "Prime Video", "#00A8E1", ["prime video", "amazon prime", "prime"]),
+  brand("xbox-game-pass", "Xbox Game Pass", "#107C10", ["xbox", "game pass"]),
+  brand("adobe-cc", "Adobe Creative Cloud", "#DA1F26", ["adobe"]),
+  brand("microsoft-365", "Microsoft 365", "#0078D4", ["microsoft 365", "office 365", "microsoft office"]),
+  brand("linkedin", "LinkedIn", "#0A66C2", ["linkedin"]),
+  brand("chatgpt", "ChatGPT", "#10A37F", ["chatgpt", "openai"]),
+  brand("aws", "AWS", "#FF9900", ["aws", "amazon web services"]),
+  brand("calm", "Calm", "#3E7CB1", ["calm"]),
+  brand("masterclass", "MasterClass", "#C6A15B", ["masterclass"]),
+  brand("babbel", "Babbel", "#0AA090", ["babbel"]),
+  brand("slack", "Slack", "#4A154B", ["slack"]),
+  brand("canva", "Canva", "#00C4CC", ["canva"]),
+  brand("heroku", "Heroku", "#430098", ["heroku"]),
 ];
 
 export interface BrandOption {
@@ -188,10 +108,9 @@ export interface BrandOption {
   label: string;
 }
 
-export const ALL_BRAND_OPTIONS: BrandOption[] = [
-  ...BRAND_ICONS.map((b) => ({ id: b.id, label: b.label })),
-  ...BRAND_COLOR_FALLBACKS.map((b) => ({ id: b.id, label: b.label })),
-].sort((a, b) => a.label.localeCompare(b.label));
+export const ALL_BRAND_OPTIONS: BrandOption[] = BRANDS.map((b) => ({ id: b.id, label: b.label })).sort((a, b) =>
+  a.label.localeCompare(b.label),
+);
 
 const HASH_SLOTS = [
   "var(--series-1)",
@@ -219,24 +138,17 @@ export function initialsFor(name: string): string {
   return (words[0][0] + words[1][0]).toUpperCase();
 }
 
-function findByKeyword(name: string): BrandIcon | BrandColorFallback | undefined {
+function findByKeyword(name: string): Brand | undefined {
   const lower = name.toLowerCase();
-  for (const entry of BRAND_ICONS) {
-    if (entry.keywords.some((k) => lower.includes(k))) return entry;
-  }
-  for (const entry of BRAND_COLOR_FALLBACKS) {
-    if (entry.keywords.some((k) => lower.includes(k))) return entry;
-  }
-  return undefined;
+  return BRANDS.find((entry) => entry.keywords.some((k) => lower.includes(k)));
 }
 
-function findById(id: string): BrandIcon | BrandColorFallback | undefined {
-  return BRAND_ICONS.find((b) => b.id === id) ?? BRAND_COLOR_FALLBACKS.find((b) => b.id === id);
+function findById(id: string): Brand | undefined {
+  return BRANDS.find((b) => b.id === id);
 }
 
 export type LogoResolution =
   | { kind: "custom"; src: string }
-  | { kind: "icon"; hex: string; path: string; title: string }
   | { kind: "color"; hex: string; initials: string }
   | { kind: "hash"; color: string; initials: string };
 
@@ -255,9 +167,6 @@ export function resolveLogo(sub: LogoSubject): LogoResolution {
   const matched = override ?? findByKeyword(sub.name);
 
   if (matched) {
-    if (matched.matchKind === "icon") {
-      return { kind: "icon", hex: matched.hex, path: matched.path, title: matched.label };
-    }
     return { kind: "color", hex: matched.hex, initials: initialsFor(sub.name) };
   }
 

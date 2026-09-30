@@ -17,29 +17,8 @@ export function LogoBadge({ sub, size = 40 }: LogoBadgeProps) {
         width={size}
         height={size}
         className="shrink-0 object-cover"
-        style={{ borderRadius: radius }}
+        style={{ borderRadius: radius, boxShadow: "inset 0 0 0 1px var(--border)" }}
       />
-    );
-  }
-
-  if (resolution.kind === "icon") {
-    return (
-      <div
-        className="flex shrink-0 items-center justify-center"
-        style={{ width: size, height: size, borderRadius: radius, background: resolution.hex }}
-        title={resolution.title}
-      >
-        <svg
-          width={size * 0.56}
-          height={size * 0.56}
-          viewBox="0 0 24 24"
-          fill="#fff"
-          role="img"
-          aria-label={resolution.title}
-        >
-          <path d={resolution.path} />
-        </svg>
-      </div>
     );
   }
 
@@ -52,6 +31,7 @@ export function LogoBadge({ sub, size = 40 }: LogoBadgeProps) {
         height: size,
         borderRadius: radius,
         background,
+        boxShadow: "inset 0 0 0 1px var(--border)",
         fontSize: Math.max(11, size * 0.36),
       }}
       aria-hidden
