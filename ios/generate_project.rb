@@ -14,7 +14,7 @@ BUNDLE_ID = 'com.mattheriault.SubTrakt'
 DEPLOYMENT_TARGET = '17.0'
 DEVELOPMENT_TEAM = '3PJ4Q58Z3W' # set via Xcode's Signing & Capabilities tab; kept here so regenerating the project doesn't drop it
 MARKETING_VERSION = '1.0' # user-visible version shown on the App Store / TestFlight
-CURRENT_PROJECT_VERSION = '1' # build number; must increase on every TestFlight/App Store upload
+CURRENT_PROJECT_VERSION = '2' # build number; must increase on every TestFlight/App Store upload
 
 File.delete(PROJECT_PATH) if File.exist?(PROJECT_PATH) && !File.directory?(PROJECT_PATH)
 

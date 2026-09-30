@@ -7,15 +7,16 @@
 #
 # WARNING: replaces the app's data on those simulators with the sample set.
 #
-# Usage: ios/take_screenshots.sh
+# Usage: ios/take_screenshots.sh [light|dark]   (default: dark)
 set -euo pipefail
+APPEARANCE="${1:-dark}"
 
 cd "$(dirname "$0")"
 BUNDLE_ID="com.mattheriault.SubTrakt"
 DERIVED="SubTrakt/build/screenshots"
 OUT="screenshots"
 DEVICES=("iPhone 17 Pro Max" "iPad Pro 13-inch (M5)")
-SCREENS=("dashboard" "list" "edit" "settings")
+SCREENS=("onboarding" "dashboard" "list" "edit" "settings")
 EDIT_NAME="Headspace"
 
 xcodebuild -project SubTrakt/SubTrakt.xcodeproj -scheme SubTrakt -configuration Debug \
@@ -90,7 +91,7 @@ EOF
 for device in "${DEVICES[@]}"; do
   xcrun simctl boot "$device" 2>/dev/null || true
   xcrun simctl bootstatus "$device" -b >/dev/null
-  xcrun simctl ui "$device" appearance dark
+  xcrun simctl ui "$device" appearance "$APPEARANCE"
   xcrun simctl status_bar "$device" override --time "9:41" --batteryState discharging \
     --batteryLevel 100 --cellularBars 4 --wifiBars 3 --dataNetwork wifi 2>/dev/null || true
 
@@ -104,7 +105,7 @@ for device in "${DEVICES[@]}"; do
   xcrun simctl launch "$device" "$BUNDLE_ID" >/dev/null
   sleep 2
 
-  dir="$OUT/$(echo "$device" | tr ' ' '-' | tr -d '()')"
+  dir="$OUT/$APPEARANCE/$(echo "$device" | tr ' ' '-' | tr -d '()')"
   mkdir -p "$dir"
   i=1
   for screen in "${SCREENS[@]}"; do

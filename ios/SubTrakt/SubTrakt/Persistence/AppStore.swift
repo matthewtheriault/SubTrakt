@@ -24,6 +24,12 @@ final class AppStore: ObservableObject {
             try? persistence.saveSubscriptions(subscriptions)
         }
 
+        // People upgrading from a version without onboarding already know the app.
+        if !settings.hasCompletedOnboarding && !subscriptions.isEmpty {
+            settings.hasCompletedOnboarding = true
+            try? persistence.saveSettings(settings)
+        }
+
         isLoading = false
 
         await notifications.rescheduleAll(subscriptions: subscriptions, settings: settings)
@@ -117,6 +123,21 @@ final class AppStore: ObservableObject {
         if reminderWindowChanged {
             persistAndReschedule(skipSubscriptionSave: true)
         }
+    }
+
+    func setAppearance(_ appearance: Appearance) {
+        settings.appearance = appearance
+        try? persistence.saveSettings(settings)
+    }
+
+    func completeOnboarding() {
+        settings.hasCompletedOnboarding = true
+        try? persistence.saveSettings(settings)
+    }
+
+    func requestNotificationPermission() async {
+        await notifications.requestAuthorizationIfNeeded()
+        await notifications.rescheduleAll(subscriptions: subscriptions, settings: settings)
     }
 
     private func persist() {

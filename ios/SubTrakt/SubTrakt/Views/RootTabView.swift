@@ -25,15 +25,18 @@ struct RootTabView: View {
 #if DEBUG
 // App Store screenshot support, compiled out of Release builds. Launching
 // with `-screenshot <screen>` opens that screen directly, since simctl can't
-// tap. Screens: dashboard, list, edit, settings. See ios/take_screenshots.sh.
+// tap. Screens: dashboard, list, edit, settings, onboarding (with
+// -screenshotPage <n>). See ios/take_screenshots.sh.
 private struct ScreenshotRouting: ViewModifier {
     @EnvironmentObject private var store: AppStore
     @Binding var selectedTab: Int
     @State private var editing: Subscription?
     @State private var settingsOpen = false
+    @State private var onboardingOpen = false
 
     private let screen = UserDefaults.standard.string(forKey: "screenshot")
     private let editName = UserDefaults.standard.string(forKey: "screenshotEdit")
+    private let onboardingPage = UserDefaults.standard.integer(forKey: "screenshotPage")
 
     func body(content: Content) -> some View {
         content
@@ -43,6 +46,7 @@ private struct ScreenshotRouting: ViewModifier {
             .onChange(of: store.isLoading) { _, isLoading in
                 guard !isLoading else { return }
                 if screen == "settings" { settingsOpen = true }
+                if screen == "onboarding" { onboardingOpen = true }
                 if screen == "edit" {
                     editing = store.subscriptions.first { $0.name == editName } ?? store.subscriptions.first
                 }
@@ -52,6 +56,9 @@ private struct ScreenshotRouting: ViewModifier {
             }
             .sheet(isPresented: $settingsOpen) {
                 SettingsView().environmentObject(store)
+            }
+            .fullScreenCover(isPresented: $onboardingOpen) {
+                OnboardingView(initialPage: onboardingPage).environmentObject(store)
             }
     }
 }

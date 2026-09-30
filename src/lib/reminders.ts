@@ -20,11 +20,8 @@ export async function reconcileSubscriptions(
 ): Promise<Subscription[] | null> {
   let changed = false;
 
-  let granted = await isPermissionGranted();
-  if (!granted) {
-    const permission = await requestPermission();
-    granted = permission === "granted";
-  }
+  // Permission is requested in context (onboarding, first add), never here.
+  const granted = await isPermissionGranted();
 
   const next = subscriptions.map((sub) => {
     let s = sub;
@@ -84,4 +81,11 @@ export async function reconcileSubscriptions(
   });
 
   return changed ? next : null;
+}
+
+// Asks for notification permission if it hasn't been granted yet. The OS only
+// shows the prompt once; later calls just return the stored answer.
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (await isPermissionGranted()) return true;
+  return (await requestPermission()) === "granted";
 }

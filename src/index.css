@@ -47,6 +47,85 @@
   --accent-glow:
     0 0 0 1px rgba(235, 104, 52, 0.4),
     0 8px 24px -8px rgba(235, 104, 52, 0.5);
+
+  /* Ember glow behind the dashboard hero and onboarding */
+  --glow: rgba(199, 66, 23, 0.55);
+}
+
+/* Light theme: follows the OS unless Settings forces a mode via data-theme.
+   The same values appear twice because CSS can't share a block between a
+   media query and an attribute selector. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --page: #f7f6f3;
+  --surface-1: #ffffff;
+  --surface-2: #f0efe9;
+  --surface-3: #e5e3da;
+  --border: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.2);
+  --text-primary: #17171a;
+  --text-secondary: #4d4c46;
+  --text-muted: #7a7972;
+  --accent: #d85a2a;
+  --accent-hover: #e56a3b;
+  --status-good: #0d8f0d;
+  --status-warning: #b9790a;
+  --status-serious: #c85a34;
+  --status-critical: #b9302f;
+  --accent-glow:
+    0 0 0 1px rgba(216, 90, 42, 0.35),
+    0 8px 24px -10px rgba(216, 90, 42, 0.45);
+  --glow: rgba(255, 153, 102, 0.45);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --page: #f7f6f3;
+    --surface-1: #ffffff;
+    --surface-2: #f0efe9;
+    --surface-3: #e5e3da;
+    --border: rgba(0, 0, 0, 0.12);
+    --border-strong: rgba(0, 0, 0, 0.2);
+    --text-primary: #17171a;
+    --text-secondary: #4d4c46;
+    --text-muted: #7a7972;
+    --accent: #d85a2a;
+    --accent-hover: #e56a3b;
+    --status-good: #0d8f0d;
+    --status-warning: #b9790a;
+    --status-serious: #c85a34;
+    --status-critical: #b9302f;
+    --accent-glow:
+      0 0 0 1px rgba(216, 90, 42, 0.35),
+      0 8px 24px -10px rgba(216, 90, 42, 0.45);
+    --glow: rgba(255, 153, 102, 0.45);
+  }
+}
+
+/* Inverted full-width pill: white on dark, near-black on light. */
+.pill-primary {
+  background: var(--text-primary);
+  color: var(--page);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+.pill-primary:hover {
+  opacity: 0.88;
+}
+
+.glow-top {
+  background:
+    radial-gradient(90% 55% at 20% -10%, var(--glow), transparent 70%),
+    var(--page);
+}
+
+.glow-bottom {
+  background:
+    radial-gradient(110% 60% at 50% 110%, var(--glow), transparent 70%),
+    var(--page);
 }
 
 * {

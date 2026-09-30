@@ -6,13 +6,14 @@ import { SubscriptionRow } from "./components/SubscriptionRow";
 import { SubscriptionForm } from "./components/SubscriptionForm";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { ConfirmDialog } from "./components/ConfirmDialog";
+import { Onboarding, TwoToneTitle } from "./components/Onboarding";
 import { useSubscriptions } from "./useSubscriptions";
 import { useSettings } from "./useSettings";
 import { buildCategoryColorMap } from "./lib/categoryColors";
 import { formatDate, daysUntil } from "./lib/format";
 import { formatMoney, toBaseCurrency } from "./lib/currency";
 import { daysSince } from "./lib/dateMath";
-import { reconcileSubscriptions } from "./lib/reminders";
+import { reconcileSubscriptions, requestNotificationPermission } from "./lib/reminders";
 import { DEFAULT_CATEGORIES, toBiWeekly, toMonthly, toYearly, type Subscription } from "./types";
 
 type SortKey = "date" | "amount" | "name";
@@ -49,6 +50,22 @@ function App() {
     // Only ever run once, right after both stores finish their initial load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, settingsLoading]);
+
+  // People upgrading from a version without onboarding already know the app.
+  useEffect(() => {
+    if (loading || settingsLoading) return;
+    if (!settings.hasCompletedOnboarding && subscriptions.length > 0) {
+      updateSettings({ ...settings, hasCompletedOnboarding: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, settingsLoading]);
+
+  // "system" removes the attribute so the prefers-color-scheme rules apply.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.appearance === "system") delete root.dataset.theme;
+    else root.dataset.theme = settings.appearance;
+  }, [settings.appearance]);
 
   const categoryColorMap = useMemo(() => {
     const firstSeen: string[] = [];
@@ -170,6 +187,8 @@ function App() {
       updateSubscription(formMode.id, values);
     } else {
       addSubscription(values);
+      // First moment a reminder is meaningful; a no-op once already answered.
+      void requestNotificationPermission();
     }
     setFormMode("closed");
   }
@@ -226,8 +245,7 @@ function App() {
         <button
           type="button"
           onClick={() => setFormMode("new")}
-          className="w-full rounded-full py-2 text-sm font-semibold cursor-pointer"
-          style={{ background: "var(--accent)", color: "var(--accent-ink)", boxShadow: "var(--accent-glow)" }}
+          className="pill-primary w-full py-2 text-sm"
         >
           + Add Subscription
         </button>
@@ -327,7 +345,7 @@ function App() {
       </aside>
 
       {/* Main */}
-      <main className="flex min-w-0 flex-1 flex-col overflow-y-auto p-6 gap-6">
+      <main className="glow-top flex min-w-0 flex-1 flex-col overflow-y-auto p-6 gap-6">
         <header className="flex items-center gap-3">
           <div className="relative flex-1">
             <svg
@@ -363,16 +381,40 @@ function App() {
           </select>
         </header>
 
-        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard label="Monthly" value={formatMoney(totals.monthly, settings.baseCurrency)} accent />
-          <StatCard label="Yearly" value={formatMoney(totals.yearly, settings.baseCurrency)} />
-          <StatCard label="Bi-Weekly" value={formatMoney(totals.biweekly, settings.baseCurrency)} />
-          <StatCard
-            label="Next Payment"
-            value={nextPayment ? formatMoney(nextPayment.amount, nextPayment.currency) : "—"}
-            hint={nextPayment ? `${nextPayment.name} · ${formatDate(nextPayment.paymentDate)}` : "Nothing scheduled"}
-          />
-        </section>
+        {subscriptions.length === 0 ? (
+          <section className="flex flex-col items-start gap-5 py-4">
+            <TwoToneTitle primary="Nothing tracked yet." secondary="Add your first one." align="left" />
+            <button type="button" onClick={() => setFormMode("new")} className="pill-primary h-11 px-6 text-sm">
+              + Add a subscription
+            </button>
+          </section>
+        ) : (
+          <section className="grid grid-cols-1 items-end gap-4 lg:grid-cols-[1fr_auto_auto]">
+            <div className="flex flex-col gap-2 py-2">
+              <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+                You spend each month
+              </p>
+              <p className="text-6xl font-bold tracking-tight tabular-nums" style={{ color: "var(--text-primary)" }}>
+                {formatMoney(totals.monthly, settings.baseCurrency)}
+              </p>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                That's{" "}
+                <span className="font-semibold tabular-nums" style={{ color: "var(--accent)" }}>
+                  {formatMoney(totals.yearly, settings.baseCurrency)}
+                </span>{" "}
+                a year across {subscriptions.length} subscription{subscriptions.length === 1 ? "" : "s"}.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4 lg:contents">
+              <StatCard label="Bi-Weekly" value={formatMoney(totals.biweekly, settings.baseCurrency)} />
+              <StatCard
+                label="Next Payment"
+                value={nextPayment ? formatMoney(nextPayment.amount, nextPayment.currency) : "—"}
+                hint={nextPayment ? `${nextPayment.name} · ${formatDate(nextPayment.paymentDate)}` : "Nothing scheduled"}
+              />
+            </div>
+          </section>
+        )}
 
         <section className="rounded-2xl border p-5" style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}>
           <h2 className="mb-4 text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -449,6 +491,15 @@ function App() {
             updateSettings(next);
             setSettingsOpen(false);
           }}
+        />
+      )}
+
+      {!loading && !settingsLoading && !settings.hasCompletedOnboarding && (
+        <Onboarding
+          onEnableReminders={async () => {
+            await requestNotificationPermission();
+          }}
+          onFinish={() => updateSettings({ ...settings, hasCompletedOnboarding: true })}
         />
       )}
 

@@ -35,11 +35,15 @@ export interface Subscription {
   updatedAt: string;
 }
 
+export type Appearance = "system" | "light" | "dark";
+
 export interface Settings {
   baseCurrency: string;
   exchangeRates: Record<string, number>; // code -> units per 1 baseCurrency... actually rate TO base (1 unit of code = rate baseCurrency)
   reminderDaysBefore: number;
   staleAfterDays: number;
+  appearance: Appearance;
+  hasCompletedOnboarding: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -47,6 +51,8 @@ export const DEFAULT_SETTINGS: Settings = {
   exchangeRates: {},
   reminderDaysBefore: 3,
   staleAfterDays: 30,
+  appearance: "system",
+  hasCompletedOnboarding: false,
 };
 
 export const DEFAULT_CATEGORIES = [

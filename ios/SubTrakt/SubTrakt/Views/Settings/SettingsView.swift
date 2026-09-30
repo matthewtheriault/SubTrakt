@@ -29,6 +29,20 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
+                    Picker("Appearance", selection: Binding(
+                        get: { store.settings.appearance },
+                        set: { store.setAppearance($0) }
+                    )) {
+                        ForEach(Appearance.allCases) { Text($0.label).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                } header: {
+                    Text("Appearance")
+                }
+
+                Section {
                     Picker("Base currency", selection: $baseCurrency) {
                         ForEach(currencyOptions, id: \.self) { Text($0).tag($0) }
                     }
@@ -146,7 +160,9 @@ struct SettingsView: View {
             baseCurrency: baseCurrency,
             exchangeRates: exchangeRates,
             reminderDaysBefore: max(0, Int(reminderDaysBeforeText) ?? 0),
-            staleAfterDays: max(1, Int(staleAfterDaysText) ?? 30)
+            staleAfterDays: max(1, Int(staleAfterDaysText) ?? 30),
+            appearance: store.settings.appearance,
+            hasCompletedOnboarding: store.settings.hasCompletedOnboarding
         )
         store.updateSettings(next)
         dismiss()

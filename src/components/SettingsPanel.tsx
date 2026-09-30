@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Settings } from "../types";
+import type { Appearance, Settings } from "../types";
 import { COMMON_CURRENCIES } from "../lib/currency";
 
 interface SettingsPanelProps {
@@ -16,6 +16,7 @@ const inputStyle = {
 };
 
 export function SettingsPanel({ settings, currenciesInUse, onCancel, onSave }: SettingsPanelProps) {
+  const [appearance, setAppearance] = useState<Appearance>(settings.appearance);
   const [baseCurrency, setBaseCurrency] = useState(settings.baseCurrency);
   const [reminderDaysBefore, setReminderDaysBefore] = useState(String(settings.reminderDaysBefore));
   const [staleAfterDays, setStaleAfterDays] = useState(String(settings.staleAfterDays));
@@ -33,6 +34,8 @@ export function SettingsPanel({ settings, currenciesInUse, onCancel, onSave }: S
       if (Number.isFinite(n) && n > 0) exchangeRates[code] = n;
     }
     onSave({
+      ...settings,
+      appearance,
       baseCurrency,
       exchangeRates,
       reminderDaysBefore: Math.max(0, Number(reminderDaysBefore) || 0),
@@ -53,6 +56,29 @@ export function SettingsPanel({ settings, currenciesInUse, onCancel, onSave }: S
         style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}
       >
         <h2 className="text-lg font-semibold">Settings</h2>
+
+        <div className="flex flex-col gap-1.5 text-sm">
+          <span style={{ color: "var(--text-secondary)" }}>Appearance</span>
+          <div className="grid grid-cols-3 gap-1 rounded-full p-1" style={{ background: "var(--surface-2)" }} role="radiogroup">
+            {(["system", "light", "dark"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={appearance === option}
+                onClick={() => setAppearance(option)}
+                className="rounded-full py-1.5 text-sm font-medium capitalize cursor-pointer"
+                style={{
+                  background: appearance === option ? "var(--surface-1)" : "transparent",
+                  color: appearance === option ? "var(--text-primary)" : "var(--text-secondary)",
+                  boxShadow: appearance === option ? "0 1px 3px rgba(0,0,0,0.15)" : undefined,
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span style={{ color: "var(--text-secondary)" }}>Base currency</span>
