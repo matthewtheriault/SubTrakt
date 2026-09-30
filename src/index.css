@@ -40,6 +40,13 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  --accent-glow:
+    0 0 0 1px rgba(235, 104, 52, 0.4),
+    0 8px 24px -8px rgba(235, 104, 52, 0.5);
 }
 
 * {

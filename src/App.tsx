@@ -213,7 +213,7 @@ function App() {
             type="button"
             onClick={() => setSettingsOpen(true)}
             aria-label="Settings"
-            className="rounded-lg p-1.5 cursor-pointer"
+            className="rounded-full p-1.5 cursor-pointer"
             style={{ color: "var(--text-muted)" }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -226,8 +226,8 @@ function App() {
         <button
           type="button"
           onClick={() => setFormMode("new")}
-          className="w-full rounded-lg py-2 text-sm font-semibold cursor-pointer"
-          style={{ background: "var(--accent)", color: "var(--accent-ink)" }}
+          className="w-full rounded-full py-2 text-sm font-semibold cursor-pointer"
+          style={{ background: "var(--accent)", color: "var(--accent-ink)", boxShadow: "var(--accent-glow)" }}
         >
           + Add Subscription
         </button>
@@ -236,7 +236,7 @@ function App() {
           <button
             type="button"
             onClick={() => selectView("all")}
-            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
+            className="flex items-center justify-between rounded-full px-3 py-1.5 text-sm cursor-pointer"
             style={{
               background: activeView === "all" && !activeCategory ? "var(--surface-2)" : "transparent",
               color: activeView === "all" && !activeCategory ? "var(--text-primary)" : "var(--text-secondary)",
@@ -250,7 +250,7 @@ function App() {
           <button
             type="button"
             onClick={() => selectView("trials-ending")}
-            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
+            className="flex items-center justify-between rounded-full px-3 py-1.5 text-sm cursor-pointer"
             style={{
               background: activeView === "trials-ending" ? "var(--surface-2)" : "transparent",
               color: activeView === "trials-ending" ? "var(--text-primary)" : "var(--text-secondary)",
@@ -269,7 +269,7 @@ function App() {
           <button
             type="button"
             onClick={() => selectView("cancel-candidates")}
-            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
+            className="flex items-center justify-between rounded-full px-3 py-1.5 text-sm cursor-pointer"
             style={{
               background: activeView === "cancel-candidates" ? "var(--surface-2)" : "transparent",
               color: activeView === "cancel-candidates" ? "var(--text-primary)" : "var(--text-secondary)",
@@ -296,7 +296,7 @@ function App() {
               key={category}
               type="button"
               onClick={() => selectCategory(category)}
-              className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm cursor-pointer"
+              className="flex items-center justify-between rounded-full px-3 py-1.5 text-sm cursor-pointer"
               style={{
                 background: activeCategory === category ? "var(--surface-2)" : "transparent",
                 color: activeCategory === category ? "var(--text-primary)" : "var(--text-secondary)",
@@ -316,7 +316,7 @@ function App() {
           ))}
         </div>
 
-        <div className="mt-auto rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+        <div className="mt-auto rounded-2xl border p-3" style={{ borderColor: "var(--border)" }}>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
             Monthly spend
           </p>
@@ -329,17 +329,32 @@ function App() {
       {/* Main */}
       <main className="flex min-w-0 flex-1 flex-col overflow-y-auto p-6 gap-6">
         <header className="flex items-center gap-3">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search subscriptions, accounts, categories…"
-            className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
-            style={{ background: "var(--surface-1)", borderColor: "var(--border)", color: "var(--text-primary)" }}
-          />
+          <div className="relative flex-1">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--text-muted)" }}
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search subscriptions, accounts, categories…"
+              className="w-full rounded-full border py-2 pl-10 pr-3 text-sm outline-none focus:ring-2"
+              style={{ background: "var(--surface-1)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+            />
+          </div>
           <select
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="rounded-lg border px-3 py-2 text-sm outline-none cursor-pointer"
+            className="rounded-full border px-4 py-2 text-sm outline-none cursor-pointer"
             style={{ background: "var(--surface-1)", borderColor: "var(--border)", color: "var(--text-secondary)" }}
           >
             <option value="date">Sort: Upcoming</option>
@@ -359,7 +374,7 @@ function App() {
           />
         </section>
 
-        <section className="rounded-xl border p-5" style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}>
+        <section className="rounded-2xl border p-5" style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}>
           <h2 className="mb-4 text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Spend by category
           </h2>
@@ -380,7 +395,7 @@ function App() {
             </p>
           ) : visibleSubscriptions.length === 0 ? (
             <div
-              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-10 text-center"
+              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed p-10 text-center"
               style={{ borderColor: "var(--border)" }}
             >
               <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>

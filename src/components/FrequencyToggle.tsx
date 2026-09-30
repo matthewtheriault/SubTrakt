@@ -11,7 +11,7 @@ interface FrequencyToggleProps {
 export function FrequencyToggle({ value, onChange }: FrequencyToggleProps) {
   return (
     <div
-      className="grid grid-cols-2 p-1 rounded-lg gap-1"
+      className="grid grid-cols-2 p-1 rounded-full gap-1"
       style={{ background: "var(--surface-2)" }}
       role="tablist"
       aria-label="Payment frequency"
@@ -25,7 +25,7 @@ export function FrequencyToggle({ value, onChange }: FrequencyToggleProps) {
             role="tab"
             aria-selected={active}
             onClick={() => onChange(opt)}
-            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer"
+            className="px-3 py-1.5 text-sm font-medium rounded-full transition-colors cursor-pointer"
             style={{
               background: active ? "var(--accent)" : "transparent",
               color: active ? "var(--accent-ink)" : "var(--text-secondary)",

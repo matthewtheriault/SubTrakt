@@ -24,7 +24,7 @@ export function ConfirmDialog({
       }}
     >
       <div
-        className="w-full max-w-sm rounded-2xl border p-6 flex flex-col gap-4 shadow-2xl"
+        className="w-full max-w-sm rounded-[28px] border p-6 flex flex-col gap-4 shadow-2xl"
         style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}
       >
         <h2 className="text-base font-semibold">{title}</h2>
@@ -35,7 +35,7 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+            className="px-4 py-2 rounded-full text-sm font-medium cursor-pointer"
             style={{ color: "var(--text-secondary)" }}
           >
             Cancel
@@ -43,10 +43,11 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+            className="px-4 py-2 rounded-full text-sm font-medium cursor-pointer"
             style={{
               background: danger ? "var(--status-critical)" : "var(--accent)",
               color: danger ? "#fff" : "var(--accent-ink)",
+              boxShadow: danger ? undefined : "var(--accent-glow)",
             }}
           >
             {confirmLabel}

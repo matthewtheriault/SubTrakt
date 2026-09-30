@@ -82,9 +82,7 @@ struct DashboardView: View {
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color("Surface1"))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color("BorderColor")))
+                    .cardBackground()
                 }
                 .padding(16)
             }
@@ -134,8 +132,6 @@ struct DashboardView: View {
                 .foregroundStyle(Color("TextMuted"))
         }
         .padding(12)
-        .background(Color("Surface1"))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color("BorderColor")))
+        .cardBackground()
     }
 }

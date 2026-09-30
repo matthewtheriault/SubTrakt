@@ -31,6 +31,8 @@ export function normalizeSubscription(input: unknown): Subscription {
     isTrial: raw.isTrial,
     trialEndDate: raw.trialEndDate,
     lastUsedDate: raw.lastUsedDate,
+    logoOverrideId: typeof raw.logoOverrideId === "string" ? raw.logoOverrideId : undefined,
+    customLogoDataUrl: typeof raw.customLogoDataUrl === "string" ? raw.customLogoDataUrl : undefined,
     priceHistory,
     lastNotifiedDate: raw.lastNotifiedDate,
     lastTrialNotifiedDate: raw.lastTrialNotifiedDate,

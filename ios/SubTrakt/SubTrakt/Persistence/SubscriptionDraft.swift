@@ -15,6 +15,8 @@ struct SubscriptionDraft {
     var isTrial: Bool = false
     var trialEndDate: String? = nil
     var lastUsedDate: String? = nil
+    var logoOverride: String? = nil
+    var customLogoData: Data? = nil
 
     static func from(_ sub: Subscription) -> SubscriptionDraft {
         SubscriptionDraft(
@@ -28,7 +30,9 @@ struct SubscriptionDraft {
             notes: sub.notes,
             isTrial: sub.isTrial,
             trialEndDate: sub.trialEndDate,
-            lastUsedDate: sub.lastUsedDate
+            lastUsedDate: sub.lastUsedDate,
+            logoOverride: sub.logoOverride,
+            customLogoData: sub.customLogoData
         )
     }
 }

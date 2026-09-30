@@ -13,6 +13,8 @@ struct Subscription: Identifiable, Codable, Equatable {
     var isTrial: Bool
     var trialEndDate: String?
     var lastUsedDate: String?
+    var logoOverride: String?
+    var customLogoData: Data?
     var priceHistory: [PriceHistoryEntry]
     var lastNotifiedDate: String?
     var lastTrialNotifiedDate: String?
@@ -32,6 +34,8 @@ struct Subscription: Identifiable, Codable, Equatable {
         isTrial: Bool = false,
         trialEndDate: String? = nil,
         lastUsedDate: String? = nil,
+        logoOverride: String? = nil,
+        customLogoData: Data? = nil,
         priceHistory: [PriceHistoryEntry],
         lastNotifiedDate: String? = nil,
         lastTrialNotifiedDate: String? = nil,
@@ -50,6 +54,8 @@ struct Subscription: Identifiable, Codable, Equatable {
         self.isTrial = isTrial
         self.trialEndDate = trialEndDate
         self.lastUsedDate = lastUsedDate
+        self.logoOverride = logoOverride
+        self.customLogoData = customLogoData
         self.priceHistory = priceHistory
         self.lastNotifiedDate = lastNotifiedDate
         self.lastTrialNotifiedDate = lastTrialNotifiedDate
@@ -93,6 +99,8 @@ struct Subscription: Identifiable, Codable, Equatable {
         self.isTrial = (try? c.decodeIfPresent(Bool.self, forKey: .isTrial)) ?? nil ?? false
         self.trialEndDate = (try? c.decodeIfPresent(String.self, forKey: .trialEndDate)) ?? nil
         self.lastUsedDate = (try? c.decodeIfPresent(String.self, forKey: .lastUsedDate)) ?? nil
+        self.logoOverride = (try? c.decodeIfPresent(String.self, forKey: .logoOverride)) ?? nil
+        self.customLogoData = (try? c.decodeIfPresent(Data.self, forKey: .customLogoData)) ?? nil
         self.priceHistory = priceHistory
         self.lastNotifiedDate = (try? c.decodeIfPresent(String.self, forKey: .lastNotifiedDate)) ?? nil
         self.lastTrialNotifiedDate = (try? c.decodeIfPresent(String.self, forKey: .lastTrialNotifiedDate)) ?? nil

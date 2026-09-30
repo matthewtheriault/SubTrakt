@@ -49,7 +49,7 @@ export function SettingsPanel({ settings, currenciesInUse, onCancel, onSave }: S
       }}
     >
       <div
-        className="w-full max-w-md rounded-2xl border p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-md rounded-[28px] border p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto"
         style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}
       >
         <h2 className="text-lg font-semibold">Settings</h2>
@@ -140,7 +140,7 @@ export function SettingsPanel({ settings, currenciesInUse, onCancel, onSave }: S
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+            className="px-4 py-2 rounded-full text-sm font-medium cursor-pointer"
             style={{ color: "var(--text-secondary)" }}
           >
             Cancel
@@ -148,8 +148,8 @@ export function SettingsPanel({ settings, currenciesInUse, onCancel, onSave }: S
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-            style={{ background: "var(--accent)", color: "var(--accent-ink)" }}
+            className="px-4 py-2 rounded-full text-sm font-medium cursor-pointer"
+            style={{ background: "var(--accent)", color: "var(--accent-ink)", boxShadow: "var(--accent-glow)" }}
           >
             Save settings
           </button>

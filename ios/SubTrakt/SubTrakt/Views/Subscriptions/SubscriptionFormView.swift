@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct SubscriptionFormView: View {
     @EnvironmentObject private var store: AppStore
@@ -19,6 +20,9 @@ struct SubscriptionFormView: View {
     @State private var isTrial = false
     @State private var trialEndDate = Date()
     @State private var notes = ""
+    @State private var logoOverride: String?
+    @State private var customLogoData: Data?
+    @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var errorMessage: String?
 
     private var knownCategories: [String] {
@@ -34,6 +38,50 @@ struct SubscriptionFormView: View {
             Form {
                 Section("Name") {
                     TextField("e.g. Xbox Game Pass", text: $name)
+                }
+
+                Section("Logo") {
+                    HStack(spacing: 12) {
+                        LogoBadgeView(name: name.isEmpty ? "?" : name, logoOverride: logoOverride, customLogoData: customLogoData, size: 48)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                Text("Choose photo…")
+                                    .font(.caption.weight(.medium))
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+
+                            Menu {
+                                ForEach(BrandIcons.allOptions) { option in
+                                    Button(option.label) {
+                                        logoOverride = option.id
+                                        customLogoData = nil
+                                    }
+                                }
+                            } label: {
+                                Text("Pick a brand icon…")
+                                    .font(.caption.weight(.medium))
+                            }
+
+                            if logoOverride != nil || customLogoData != nil {
+                                Button("Remove", role: .destructive) {
+                                    logoOverride = nil
+                                    customLogoData = nil
+                                    selectedPhotoItem = nil
+                                }
+                                .font(.caption.weight(.medium))
+                            }
+                        }
+                    }
+                    .task(id: selectedPhotoItem) {
+                        guard let selectedPhotoItem else { return }
+                        if let data = try? await selectedPhotoItem.loadTransferable(type: Data.self),
+                           let resized = Self.resizedLogoData(from: data) {
+                            customLogoData = resized
+                            logoOverride = nil
+                        }
+                    }
                 }
 
                 Section("Category") {
@@ -97,6 +145,8 @@ struct SubscriptionFormView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color("Page"))
             .navigationTitle(existing == nil ? "Add Subscription" : "Edit Subscription")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -135,6 +185,31 @@ struct SubscriptionFormView: View {
             trialEndDate = date
         }
         notes = existing.notes ?? ""
+        logoOverride = existing.logoOverride
+        customLogoData = existing.customLogoData
+    }
+
+    private static let logoSize: CGFloat = 256
+
+    private static func resizedLogoData(from data: Data) -> Data? {
+        guard let image = UIImage(data: data) else { return nil }
+        let side = min(image.size.width, image.size.height)
+        let cropRect = CGRect(
+            x: (image.size.width - side) / 2,
+            y: (image.size.height - side) / 2,
+            width: side,
+            height: side
+        )
+        guard let cgImage = image.cgImage?.cropping(to: cropRect.applying(
+            CGAffineTransform(scaleX: image.scale, y: image.scale)
+        )) else { return nil }
+        let cropped = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: logoSize, height: logoSize))
+        let resized = renderer.image { _ in
+            cropped.draw(in: CGRect(x: 0, y: 0, width: logoSize, height: logoSize))
+        }
+        return resized.pngData()
     }
 
     private func submit() {
@@ -175,6 +250,8 @@ struct SubscriptionFormView: View {
         draft.isTrial = isTrial
         draft.trialEndDate = isTrial ? DateMath.isoString(from: trialEndDate) : nil
         draft.lastUsedDate = hasLastUsedDate ? DateMath.isoString(from: lastUsedDate ?? Date()) : nil
+        draft.logoOverride = logoOverride
+        draft.customLogoData = customLogoData
 
         if let existing {
             store.updateSubscription(id: existing.id, with: draft)

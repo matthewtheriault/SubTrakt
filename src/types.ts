@@ -23,6 +23,9 @@ export interface Subscription {
 
   lastUsedDate?: string; // ISO date, optional, for spotting unused subscriptions
 
+  logoOverrideId?: string; // explicit brand-icon id chosen by the user, overrides name auto-match
+  customLogoDataUrl?: string; // user-uploaded image (data URL), takes precedence over everything
+
   priceHistory: PriceHistoryEntry[];
 
   lastNotifiedDate?: string; // paymentDate value we last sent a due-soon reminder for

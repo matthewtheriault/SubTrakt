@@ -1,8 +1,12 @@
 import SwiftUI
+import UserNotifications
 
 struct SettingsView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+
+    @State private var notificationsDenied = false
 
     @State private var baseCurrency = "USD"
     @State private var reminderDaysBeforeText = "3"
@@ -63,6 +67,15 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("Remind me before a charge / trial ends")
+                } footer: {
+                    if notificationsDenied {
+                        Button("Notifications are off for SubTrakt. Turn them on in Settings.") {
+                            if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                                openURL(url)
+                            }
+                        }
+                        .font(.footnote)
+                    }
                 }
 
                 Section {
@@ -75,7 +88,19 @@ struct SettingsView: View {
                 } header: {
                     Text("Flag as a cancel candidate after")
                 }
+
+                Section {
+                    LabeledContent("Version", value: appVersion)
+                    Link("Privacy Policy", destination: Constants.privacyPolicyURL)
+                    Link("Support", destination: Constants.supportURL)
+                } header: {
+                    Text("About")
+                } footer: {
+                    Text("Your subscriptions are stored only on this device. SubTrakt has no account and sends nothing off your phone.")
+                }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color("Page"))
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -87,7 +112,18 @@ struct SettingsView: View {
                 }
             }
             .onAppear(perform: populate)
+            .task {
+                let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+                notificationsDenied = status == .denied
+            }
         }
+    }
+
+    private var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 
     private func populate() {

@@ -29,7 +29,13 @@ struct SubscriptionRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: 12) {
-                Circle().fill(color).frame(width: 10, height: 10).padding(.top, 5)
+                ZStack(alignment: .bottomTrailing) {
+                    LogoBadgeView(name: sub.name, logoOverride: sub.logoOverride, customLogoData: sub.customLogoData, size: 40)
+                    Circle()
+                        .fill(color)
+                        .frame(width: 10, height: 10)
+                        .overlay(Circle().strokeBorder(Color("Surface1"), lineWidth: 2))
+                }
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
@@ -120,9 +126,7 @@ struct SubscriptionRowView: View {
                 }
             }
         }
-        .background(Color("Surface1"))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color("BorderColor")))
+        .cardBackground()
         .swipeActions(edge: .trailing) {
             Button(role: .destructive, action: onDelete) {
                 Label("Delete", systemImage: "trash")

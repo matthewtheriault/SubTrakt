@@ -12,7 +12,7 @@ struct StatCardView: View {
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(Color("TextMuted"))
             Text(value)
-                .font(.title2.weight(.semibold))
+                .font(accent ? .title.weight(.semibold) : .title2.weight(.semibold))
                 .foregroundStyle(accent ? Color("Accent") : Color("TextPrimary"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -26,9 +26,11 @@ struct StatCardView: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("Surface1"))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: 12).strokeBorder(Color("BorderColor"))
+            RoundedRectangle(cornerRadius: Theme.cardRadius)
+                .strokeBorder(accent ? Color.clear : Color("BorderColor"))
         )
+        .shadow(color: accent ? Color("Accent").opacity(0.45) : .clear, radius: accent ? 12 : 0, y: accent ? 4 : 0)
     }
 }

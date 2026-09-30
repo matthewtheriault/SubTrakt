@@ -1,8 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { Frequency, Subscription } from "../types";
 import type { SubscriptionInput } from "../useSubscriptions";
 import { FrequencyToggle } from "./FrequencyToggle";
+import { LogoBadge } from "./LogoBadge";
 import { COMMON_CURRENCIES } from "../lib/currency";
+import { ALL_BRAND_OPTIONS } from "../lib/brandIcons";
 
 export interface SubscriptionFormValues {
   name: string;
@@ -16,6 +18,38 @@ export interface SubscriptionFormValues {
   isTrial: boolean;
   trialEndDate: string;
   lastUsedDate: string;
+  logoOverrideId: string;
+  customLogoDataUrl: string;
+}
+
+const LOGO_UPLOAD_SIZE = 256;
+
+function resizeImageToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Could not read image"));
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = LOGO_UPLOAD_SIZE;
+        canvas.height = LOGO_UPLOAD_SIZE;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas not supported"));
+          return;
+        }
+        const side = Math.min(img.width, img.height);
+        const sx = (img.width - side) / 2;
+        const sy = (img.height - side) / 2;
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, LOGO_UPLOAD_SIZE, LOGO_UPLOAD_SIZE);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 interface SubscriptionFormProps {
@@ -39,6 +73,8 @@ function emptyValues(defaultCurrency: string): SubscriptionFormValues {
     isTrial: false,
     trialEndDate: "",
     lastUsedDate: "",
+    logoOverrideId: "",
+    customLogoDataUrl: "",
   };
 }
 
@@ -55,6 +91,8 @@ function fromSubscription(sub: Subscription): SubscriptionFormValues {
     isTrial: sub.isTrial ?? false,
     trialEndDate: sub.trialEndDate ?? "",
     lastUsedDate: sub.lastUsedDate ?? "",
+    logoOverrideId: sub.logoOverrideId ?? "",
+    customLogoDataUrl: sub.customLogoDataUrl ?? "",
   };
 }
 
@@ -75,6 +113,7 @@ export function SubscriptionForm({
     initial ? fromSubscription(initial) : emptyValues(defaultCurrency),
   );
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currencyOptions = Array.from(new Set([...COMMON_CURRENCIES, values.currency]));
 
@@ -117,7 +156,21 @@ export function SubscriptionForm({
       isTrial: values.isTrial,
       trialEndDate: values.isTrial ? values.trialEndDate : undefined,
       lastUsedDate: values.lastUsedDate || undefined,
+      logoOverrideId: values.logoOverrideId || undefined,
+      customLogoDataUrl: values.customLogoDataUrl || undefined,
     });
+  }
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const dataUrl = await resizeImageToDataUrl(file);
+      setValues((v) => ({ ...v, customLogoDataUrl: dataUrl, logoOverrideId: "" }));
+    } catch {
+      setError("Couldn't load that image. Try a different file.");
+    }
   }
 
   return (
@@ -130,7 +183,7 @@ export function SubscriptionForm({
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl border p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-md rounded-[28px] border p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto"
         style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}
       >
         <h2 className="text-lg font-semibold">{initial ? "Edit Subscription" : "Add Subscription"}</h2>
@@ -146,6 +199,66 @@ export function SubscriptionForm({
             onChange={(e) => set("name", e.target.value)}
           />
         </label>
+
+        <div className="flex flex-col gap-2 text-sm">
+          <span style={{ color: "var(--text-secondary)" }}>Logo</span>
+          <div className="flex items-center gap-3">
+            <LogoBadge
+              sub={{
+                name: values.name || "?",
+                logoOverrideId: values.logoOverrideId || undefined,
+                customLogoDataUrl: values.customLogoDataUrl || undefined,
+              }}
+              size={48}
+            />
+            <div className="flex flex-1 flex-col gap-1.5">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium cursor-pointer"
+                  style={{ color: "var(--text-secondary)", background: "var(--surface-2)" }}
+                >
+                  Choose image…
+                </button>
+                {(values.customLogoDataUrl || values.logoOverrideId) && (
+                  <button
+                    type="button"
+                    onClick={() => setValues((v) => ({ ...v, customLogoDataUrl: "", logoOverrideId: "" }))}
+                    className="rounded-full px-3 py-1.5 text-xs font-medium cursor-pointer"
+                    style={{ color: "var(--status-critical)", background: "var(--surface-2)" }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <input
+                list="subtrakt-brand-options"
+                placeholder="Or pick a brand icon…"
+                className="rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2"
+                style={inputStyle}
+                disabled={!!values.customLogoDataUrl}
+                value={ALL_BRAND_OPTIONS.find((b) => b.id === values.logoOverrideId)?.label ?? ""}
+                onChange={(e) => {
+                  const match = ALL_BRAND_OPTIONS.find((b) => b.label === e.target.value);
+                  set("logoOverrideId", match ? match.id : "");
+                }}
+              />
+              <datalist id="subtrakt-brand-options">
+                {ALL_BRAND_OPTIONS.map((b) => (
+                  <option key={b.id} value={b.label} />
+                ))}
+              </datalist>
+            </div>
+          </div>
+        </div>
 
         <label className="flex flex-col gap-1.5 text-sm">
           <span style={{ color: "var(--text-secondary)" }}>Category</span>
@@ -286,15 +399,15 @@ export function SubscriptionForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+            className="px-4 py-2 rounded-full text-sm font-medium cursor-pointer"
             style={{ color: "var(--text-secondary)" }}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-            style={{ background: "var(--accent)", color: "var(--accent-ink)" }}
+            className="px-4 py-2 rounded-full text-sm font-medium cursor-pointer"
+            style={{ background: "var(--accent)", color: "var(--accent-ink)", boxShadow: "var(--accent-glow)" }}
           >
             {initial ? "Save changes" : "Add subscription"}
           </button>

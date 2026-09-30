@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1821D41AE0096383C035385D"
+               BlueprintIdentifier = "0572CA24AAB20B26C1BA994D"
                BuildableName = "SubTrakt.app"
                BlueprintName = "SubTrakt"
                ReferencedContainer = "container:SubTrakt.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1821D41AE0096383C035385D"
+            BlueprintIdentifier = "0572CA24AAB20B26C1BA994D"
             BuildableName = "SubTrakt.app"
             BlueprintName = "SubTrakt"
             ReferencedContainer = "container:SubTrakt.xcodeproj">
@@ -53,7 +53,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1821D41AE0096383C035385D"
+            BlueprintIdentifier = "0572CA24AAB20B26C1BA994D"
             BuildableName = "SubTrakt.app"
             BlueprintName = "SubTrakt"
             ReferencedContainer = "container:SubTrakt.xcodeproj">
@@ -70,7 +70,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1821D41AE0096383C035385D"
+            BlueprintIdentifier = "0572CA24AAB20B26C1BA994D"
             BuildableName = "SubTrakt.app"
             BlueprintName = "SubTrakt"
             ReferencedContainer = "container:SubTrakt.xcodeproj">

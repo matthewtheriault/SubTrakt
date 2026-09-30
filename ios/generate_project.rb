@@ -13,6 +13,8 @@ SOURCE_ROOT = File.join(ROOT, 'SubTrakt')
 BUNDLE_ID = 'com.mattheriault.SubTrakt'
 DEPLOYMENT_TARGET = '17.0'
 DEVELOPMENT_TEAM = '3PJ4Q58Z3W' # set via Xcode's Signing & Capabilities tab; kept here so regenerating the project doesn't drop it
+MARKETING_VERSION = '1.0' # user-visible version shown on the App Store / TestFlight
+CURRENT_PROJECT_VERSION = '1' # build number; must increase on every TestFlight/App Store upload
 
 File.delete(PROJECT_PATH) if File.exist?(PROJECT_PATH) && !File.directory?(PROJECT_PATH)
 
@@ -36,6 +38,10 @@ def add_dir(project, target, group, dir)
     elsif entry.end_with?('.swift')
       ref = group.new_reference(full_path)
       target.source_build_phase.add_file_reference(ref)
+    elsif entry.end_with?('.xcprivacy')
+      # Privacy manifest — required by App Store Connect; must be copied into the bundle.
+      ref = group.new_reference(full_path)
+      target.resources_build_phase.add_file_reference(ref)
     end
   end
 end
@@ -56,6 +62,12 @@ target.build_configurations.each do |config|
   bs['ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME'] = 'AccentColor'
   bs['CODE_SIGN_STYLE'] = 'Automatic'
   bs['DEVELOPMENT_TEAM'] = DEVELOPMENT_TEAM
+  bs['MARKETING_VERSION'] = MARKETING_VERSION
+  bs['CURRENT_PROJECT_VERSION'] = CURRENT_PROJECT_VERSION
+  bs['INFOPLIST_KEY_ITSAppUsesNonExemptEncryption'] = 'NO' # skips the manual export-compliance prompt on upload; the app does no custom encryption beyond standard OS/HTTPS
+  bs['INFOPLIST_KEY_UIRequiresFullScreen'] = 'YES' # layouts are only designed/tested portrait; opts iPad out of Split View/Slide Over instead of requiring all 4 orientations
+  bs['INFOPLIST_KEY_UISupportedInterfaceOrientations'] = 'UIInterfaceOrientationPortrait'
+  bs['INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad'] = 'UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown'
   bs['SWIFT_EMIT_LOC_STRINGS'] = 'NO'
   bs['ENABLE_PREVIEWS'] = 'YES'
 end

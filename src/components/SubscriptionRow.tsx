@@ -4,6 +4,7 @@ import { FREQUENCY_LABELS } from "../types";
 import { daysUntil, formatDate } from "../lib/format";
 import { formatMoney } from "../lib/currency";
 import { daysSince } from "../lib/dateMath";
+import { LogoBadge } from "./LogoBadge";
 
 const PERIOD_UNIT_LABELS: Record<Frequency, string> = {
   biweekly: "period",
@@ -60,11 +61,18 @@ export function SubscriptionRow({
 
   return (
     <div
-      className="rounded-xl border transition-colors"
+      className="rounded-2xl border transition-colors"
       style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}
     >
-      <div className="group flex items-center gap-4 px-4 py-3">
-        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} aria-hidden />
+      <div className="group flex items-center gap-4 px-4 py-3.5">
+        <div className="relative shrink-0">
+          <LogoBadge sub={sub} size={40} />
+          <span
+            className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full"
+            style={{ background: color, boxShadow: "0 0 0 2px var(--surface-1)" }}
+            aria-hidden
+          />
+        </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -107,7 +115,7 @@ export function SubscriptionRow({
 
         {isDueOrOverdue && (
           <label
-            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium cursor-pointer"
+            className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium cursor-pointer"
             style={{ color: "var(--status-warning)", background: "var(--surface-2)" }}
             title="Mark this payment as made and roll to the next cycle"
           >
@@ -130,35 +138,43 @@ export function SubscriptionRow({
             <button
               type="button"
               onClick={() => setHistoryOpen((v) => !v)}
-              className="rounded-lg px-2 py-1.5 text-xs font-medium cursor-pointer"
+              title="Price history"
+              aria-label="Price history"
+              className="flex h-8 w-8 items-center justify-center rounded-full cursor-pointer"
               style={{ color: "var(--text-secondary)", background: "var(--surface-2)" }}
             >
-              History
+              <ClockIcon />
             </button>
           )}
           <button
             type="button"
             onClick={onMarkUsedToday}
-            className="rounded-lg px-2 py-1.5 text-xs font-medium cursor-pointer"
+            title="Used today"
+            aria-label="Used today"
+            className="flex h-8 w-8 items-center justify-center rounded-full cursor-pointer"
             style={{ color: "var(--text-secondary)", background: "var(--surface-2)" }}
           >
-            Used today
+            <CheckIcon />
           </button>
           <button
             type="button"
             onClick={onEdit}
-            className="rounded-lg px-2 py-1.5 text-xs font-medium cursor-pointer"
+            title="Edit"
+            aria-label="Edit"
+            className="flex h-8 w-8 items-center justify-center rounded-full cursor-pointer"
             style={{ color: "var(--text-secondary)", background: "var(--surface-2)" }}
           >
-            Edit
+            <PencilIcon />
           </button>
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-lg px-2 py-1.5 text-xs font-medium cursor-pointer"
+            title="Delete"
+            aria-label="Delete"
+            className="flex h-8 w-8 items-center justify-center rounded-full cursor-pointer"
             style={{ color: "var(--status-critical)", background: "var(--surface-2)" }}
           >
-            Delete
+            <TrashIcon />
           </button>
         </div>
       </div>
@@ -192,5 +208,42 @@ export function SubscriptionRow({
         </div>
       )}
     </div>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 6h18" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
   );
 }

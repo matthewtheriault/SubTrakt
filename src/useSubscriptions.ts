@@ -20,6 +20,8 @@ export type SubscriptionInput = Pick<
   | "isTrial"
   | "trialEndDate"
   | "lastUsedDate"
+  | "logoOverrideId"
+  | "customLogoDataUrl"
 >;
 
 export function useSubscriptions() {

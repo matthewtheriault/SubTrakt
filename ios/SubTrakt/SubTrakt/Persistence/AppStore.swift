@@ -26,7 +26,6 @@ final class AppStore: ObservableObject {
 
         isLoading = false
 
-        await notifications.requestAuthorizationIfNeeded()
         await notifications.rescheduleAll(subscriptions: subscriptions, settings: settings)
     }
 
@@ -45,12 +44,16 @@ final class AppStore: ObservableObject {
             isTrial: draft.isTrial,
             trialEndDate: draft.trialEndDate,
             lastUsedDate: draft.lastUsedDate,
+            logoOverride: draft.logoOverride,
+            customLogoData: draft.customLogoData,
             priceHistory: [PriceHistoryEntry(amount: draft.amount, frequency: draft.frequency, currency: draft.currency, effectiveFrom: today)],
             createdAt: now,
             updatedAt: now
         )
         subscriptions.append(newSub)
-        persistAndReschedule()
+        // Ask for notification permission here, in context, rather than on
+        // first launch — this is the first moment a reminder is meaningful.
+        persistAndReschedule(requestingAuthorization: true)
     }
 
     func updateSubscription(id: String, with draft: SubscriptionDraft) {
@@ -76,6 +79,8 @@ final class AppStore: ObservableObject {
         updated.isTrial = draft.isTrial
         updated.trialEndDate = draft.trialEndDate
         updated.lastUsedDate = draft.lastUsedDate
+        updated.logoOverride = draft.logoOverride
+        updated.customLogoData = draft.customLogoData
         updated.priceHistory = priceHistory
         updated.lastNotifiedDate = draft.paymentDate != existing.paymentDate ? nil : existing.lastNotifiedDate
         updated.lastTrialNotifiedDate = draft.trialEndDate != existing.trialEndDate ? nil : existing.lastTrialNotifiedDate
@@ -118,13 +123,16 @@ final class AppStore: ObservableObject {
         try? persistence.saveSubscriptions(subscriptions)
     }
 
-    private func persistAndReschedule(skipSubscriptionSave: Bool = false) {
+    private func persistAndReschedule(skipSubscriptionSave: Bool = false, requestingAuthorization: Bool = false) {
         if !skipSubscriptionSave {
             try? persistence.saveSubscriptions(subscriptions)
         }
         let subs = subscriptions
         let currentSettings = settings
         Task { [notifications] in
+            if requestingAuthorization {
+                await notifications.requestAuthorizationIfNeeded()
+            }
             await notifications.rescheduleAll(subscriptions: subs, settings: currentSettings)
         }
     }
